@@ -1,22 +1,24 @@
 <?php
-function connectToMysql($database, $table, $host = 'localhost') {
+function setupEnvironment() {
   try {
-    $mysqlCreds = file_get_contents('mysql.creds');
-    list($user, $pass) = explode("\n", $mysqlCreds);
+    $environmentFile = file_get_contents('env.setup');
   } catch (Exception $e) {
     error_log('Mysql creds not determined, exiting');
     exit(1);
   }
+  return explode("\n", $environmentFile);
+}
+function connectToMysql($user, $pass, $database, $host='localhost') {
   mysql_connect($host, $user, $pass) or die(mysql_error());
   mysql_select_db($database) or die(mysql_error());
 }
 
-$path = "allowance-ledger/";
-$thisScript = basename(__FILE__);
-$database = "finance";
-$table = "ledger";
+$pathArray = pathinfo(__FILE__);
+$path = preg_replace('/\/var\/www\//', '', $pathArray['dirname']). "/";
+$thisScript = $pathArray['basename'];
 $host = $_SERVER['HTTP_HOST'];
-connectToMysql($database, $table);
+list($user, $password, $database, $table) = setupEnvironment();
+connectToMysql($user, $password, $database);
 
 if (isset($_GET['edit']) && $_GET['edit']) {
   if (isset($_GET['cleared'])) {
