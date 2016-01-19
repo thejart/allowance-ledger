@@ -18,7 +18,7 @@ $table = "ledger";
 $host = $_SERVER['HTTP_HOST'];
 connectToMysql($database, $table);
 
-if ($_GET['edit']) {
+if (isset($_GET['edit']) && $_GET['edit']) {
   if (isset($_GET['cleared'])) {
     $insert = "update ". $table. " set description='". $_GET['description']. "',".
               "amount=". $_GET['amount']. ",cleared=1 where id=". $_GET['id'];
@@ -32,7 +32,7 @@ if ($_GET['edit']) {
   header( "Location: https://$host/". $path. $thisScript);
   exit(0); // This is Optional but suggested, to avoid any accidental output
 }
-else if ($_GET['description'] && $_GET['amount']) {
+else if (isset($_GET['description']) && $_GET['description'] && isset($_GET['amount']) && $_GET['amount']) {
   mysql_query("insert into ". $table. " (credit,description,amount) ".
               "values (". $_GET['credit']. ",'". $_GET['description']. "',". $_GET['amount']. ")");
   header( "HTTP/1.1 301 Moved Permanently" );
@@ -40,7 +40,7 @@ else if ($_GET['description'] && $_GET['amount']) {
   header( "Location: https://$host/". $path. $thisScript);
   exit(0); // This is Optional but suggested, to avoid any accidental output
 }
-else if ($_GET['id']) {
+else if (isset($_GET['id']) && $_GET['id']) {
   mysql_query("delete from ". $table. " where id=". $_GET['id']);
   header( "HTTP/1.1 301 Moved Permanently" );
   header( "Status: 301 Moved Permanently" );
@@ -55,7 +55,7 @@ $credit = mysql_fetch_array($creditQ);
 $debitQ = mysql_query("select sum(amount) as d from ". $table.
                         " where credit is FALSE order by time");
 $debit = mysql_fetch_array($debitQ);
-$balance = $credit[c] - $debit[d];
+$balance = $credit['c'] - $debit['d'];
 $outstandingQ = mysql_query("select sum(amount) as o from ". $table.
                   " where credit is FALSE and cleared is FALSE order by time");
 $outstanding = mysql_fetch_array($outstandingQ);
@@ -273,18 +273,18 @@ if (isset($_GET['view']) && $_GET['view'] == 'summary') {
     $x = $dur + $start - 1;  # we're really only including the following day
     $q = mysql_query("select subdate(now(), interval $x day) as d");
     $r = mysql_fetch_array($q);
-    $from = $r[d];
+    $from = $r['d'];
     $from = preg_replace("/\d{4}-(\d{2})-(\d{2}).*/","$1/$2",$from);
     $q = mysql_query("select subdate(now(), interval $start day) as d");
     $r = mysql_fetch_array($q);
-    $to = $r[d];
+    $to = $r['d'];
     $to = preg_replace("/\d{4}-(\d{2})-(\d{2}).*/","$1/$2",$to);
     $creditS = "select sum(amount) s from ". $table. " where credit=1 and ".
                "(datediff(now(),time)<". ($dur+$start). ") and ".
                "(datediff(now(),time)>=". $start. ")";
     $creditQ = mysql_query($creditS);
     $c = mysql_fetch_array($creditQ);
-    $tot = ($c[s]) ? " <b>\$$c[s]</b>" : "";
+    $tot = ($c['s']) ? " <b>\$". $c['s']. "</b>" : "";
     print "
     <tr>
       <td colspan=2><em>$from to $to</em>$tot</td>
@@ -314,8 +314,8 @@ if (isset($_GET['view']) && $_GET['view'] == 'summary') {
       $j++;
       #$bgcolor = ($j==$entries || $j%2) ? '#ffffff' : '#c0c0c0';
       $bgcolor = ($j%2) ? '#ffffff' : '#c0c0c0';
-      $amount = '$'. $row[s];
-      $desc = $row[description];
+      $amount = '$'. $row['s'];
+      $desc = $row['description'];
       if (!$desc) { $amount = "<b>$amount</b>"; }
       print "
       <tr bgcolor='$bgcolor'>
@@ -349,10 +349,10 @@ if (isset($_GET['view']) && $_GET['view'] == 'summary') {
     </form>
     </td>
   </tr>
-<?  if ($outstanding[o]) { ?>
+<?  if ($outstanding['o']) { ?>
   <tr>
     <td colspan='4' align='right'>
-      <strong><em>$<?=$outstanding[o]?> uncleared</em></strong>
+      <strong><em>$<?=$outstanding['o']?> uncleared</em></strong>
     </td>
   </tr>
 
@@ -372,12 +372,12 @@ if (isset($_GET['view']) && $_GET['view'] == 'summary') {
                       #from ".$table." where (datediff(current_timestamp(),time)<40)
   $k=0;
   while ($row = mysql_fetch_array($allQ)) {
-    $id = $row[id];
-    $credit = $row[credit];
-    $description = $row[description];
-    $amount = $row[amount];
-    $time = $row[time];
-    $cleared = $row[cleared];
+    $id = $row['id'];
+    $credit = $row['credit'];
+    $description = $row['description'];
+    $amount = $row['amount'];
+    $time = $row['time'];
+    $cleared = $row['cleared'];
     $Pbalance = sprintf("%01.2f",$balance);
 
     if ($balance > 0 ) { $bgcolor = 'ffffff'; }
@@ -424,12 +424,12 @@ if (isset($_GET['view']) && $_GET['view'] == 'summary') {
                       #from ".$table." where (datediff(current_timestamp(),time)<40)
   $k=0;
   while ($row = mysql_fetch_array($allQ)) {
-    $id = $row[id];
-    $credit = $row[credit];
-    $description = $row[description];
-    $amount = $row[amount];
-    $time = $row[time];
-    $cleared = $row[cleared];
+    $id = $row['id'];
+    $credit = $row['credit'];
+    $description = $row['description'];
+    $amount = $row['amount'];
+    $time = $row['time'];
+    $cleared = $row['cleared'];
 
     $bgcolor = '7f7fff';
   ?>
