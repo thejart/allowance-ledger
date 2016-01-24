@@ -16,8 +16,8 @@ class LedgerManager {
 		$query = $this->pdo->prepare("
 			update {$this->table}
 			set description = :description,
-			set amount = :amount,
-			set cleared = :cleared
+			amount = :amount,
+			cleared = :cleared
 			where id = :transactionId
 		");
 		return $query->execute([
@@ -153,6 +153,19 @@ class LedgerManager {
 		// select id,credit,description,amount,time,cleared from ledger
 		// where time<='$dateInThePast' and cleared=0 and credit=0 order by time desc"
 
+	}
+
+	public function validateCreate($description, $amount, $credit)
+	{
+		return true;
+	}
+	public function validateUpdate($id, $description, $amount, $cleared)
+	{
+		return true;
+	}
+	public function validateDelete($id)
+	{
+		return true;
 	}
 }
 
