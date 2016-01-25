@@ -1,16 +1,27 @@
 <?php
+include 'ledgerManager.php';
+
 function setupEnvironment() {
-  try {
-    $environmentFile = file_get_contents('env.setup');
-  } catch (Exception $e) {
-    error_log('Mysql creds not determined, exiting');
-    exit(1);
-  }
-  return explode("\n", $environmentFile);
+	try {
+		$environmentFile = file_get_contents('env.setup');
+	} catch (Exception $e) {
+		error_log('Mysql creds not determined, exiting');
+		exit(1);
+	}
+	return explode("\n", $environmentFile);
 }
 function connectToMysql($user, $pass, $database, $host='localhost') {
-  mysql_connect($host, $user, $pass) or die(mysql_error());
-  mysql_select_db($database) or die(mysql_error());
+	mysql_connect($host, $user, $pass) or die(mysql_error());
+	mysql_select_db($database) or die(mysql_error());
+}
+function getRequestParam($field, $default = null) {
+	return isset($_REQUEST[$field]) ? $_REQUEST[$field] : $default;
+}
+function redirectTo($URL) {
+	header( "HTTP/1.1 301 Moved Permanently" );
+	header( "Status: 301 Moved Permanently" );
+	header( "Location: https://{$URL}");
+	exit(0); // This is Optional but suggested, to avoid any accidental output
 }
 
 $pathArray = pathinfo(__FILE__);
@@ -18,66 +29,45 @@ $path = preg_replace('/\/var\/www\//', '', $pathArray['dirname']). "/";
 $thisScript = $pathArray['basename'];
 $host = $_SERVER['HTTP_HOST'];
 list($user, $password, $database, $table) = setupEnvironment();
+
+// TODO: Completely remove this, which is only being used on the summary page
 connectToMysql($user, $password, $database);
+$ledgerManager = new LedgerManager($user, $password, $database, $table);
 
-if (isset($_GET['edit']) && $_GET['edit']) {
-  if (isset($_GET['cleared'])) {
-    $insert = "update ". $table. " set description='". $_GET['description']. "',".
-              "amount=". $_GET['amount']. ",cleared=1 where id=". $_GET['id'];
-  } else {
-    $insert = "update ". $table. " set description='". $_GET['description']. "',".
-              "amount=". $_GET['amount']. " where id=". $_GET['id'];
-  }
-  mysql_query($insert) or die ("[$insert] failed");
-  header( "HTTP/1.1 301 Moved Permanently" );
-  header( "Status: 301 Moved Permanently" );
-  header( "Location: https://$host/". $path. $thisScript);
-  exit(0); // This is Optional but suggested, to avoid any accidental output
-}
-else if (isset($_GET['description']) && $_GET['description'] && isset($_GET['amount']) && $_GET['amount']) {
-  mysql_query("insert into ". $table. " (credit,description,amount) ".
-              "values (". $_GET['credit']. ",'". $_GET['description']. "',". $_GET['amount']. ")");
-  header( "HTTP/1.1 301 Moved Permanently" );
-  header( "Status: 301 Moved Permanently" );
-  header( "Location: https://$host/". $path. $thisScript);
-  exit(0); // This is Optional but suggested, to avoid any accidental output
-}
-else if (isset($_GET['id']) && $_GET['id']) {
-  mysql_query("delete from ". $table. " where id=". $_GET['id']);
-  header( "HTTP/1.1 301 Moved Permanently" );
-  header( "Status: 301 Moved Permanently" );
-  header( "Location: https://$host/". $path. $thisScript);
-  exit(0); // This is Optional but suggested, to avoid any accidental output
+$verb = getRequestParam('verb');
+$id = getRequestParam('id');
+$description = getRequestParam('description');
+$amount = getRequestParam('amount');
+$credit = getRequestParam('credit');
+$cleared = getRequestParam('cleared', 0);
+
+if (isset($verb)) {
+	if ($verb == 'update' &&
+			$ledgerManager->validateUpdate($id, $description, $amount, $cleared)) {
+		$ledgerManager->updateTransaction($id, $description, $amount, $cleared);
+		error_log('updated transaction: '. $id);
+		redirectTo("{$host}/{$path}{$thisScript}");
+	}
+	elseif ($verb == 'create' && $ledgerManager->validateCreate($description, $amount, $credit)) {
+		$ledgerManager->insertTransaction($description, $amount, $credit);
+		error_log('inserted transaction');
+		redirectTo("{$host}/{$path}{$thisScript}");
+	}
+	elseif ($verb == 'delete' && $ledgerManager->validateDelete($id)) {
+		$ledgerManager->deleteTransaction($id);
+		error_log('deleted transaction: '. $id);
+		redirectTo("{$host}/{$path}{$thisScript}");
+	}
 }
 
-
-$creditQ = mysql_query("select sum(amount) as c from ". $table.
-                        " where credit is TRUE order by time");
-$credit = mysql_fetch_array($creditQ);
-$debitQ = mysql_query("select sum(amount) as d from ". $table.
-                        " where credit is FALSE order by time");
-$debit = mysql_fetch_array($debitQ);
-$balance = $credit['c'] - $debit['d'];
-$outstandingQ = mysql_query("select sum(amount) as o from ". $table.
-                  " where credit is FALSE and cleared is FALSE order by time");
-$outstanding = mysql_fetch_array($outstandingQ);
-
-
-$calstr = `cal`;
-$cal = preg_split('/\n/',$calstr);
-$len = sizeof($cal);
-$lastmday = (preg_match('/\S/',$cal[($len-2)])) ? $cal[($len-2)] :
-                                                  $cal[($len-3)];
-if (preg_match('/\s/',$lastmday)) {
-  $d = preg_split('/\s+/',$lastmday);
-  $len = sizeof($d);
-  $lastmday = $d[($len-2)];
-}
-
-$todaystr = `date | awk '{print $3}'`;
-$today = preg_replace('/^(\d+).*/','$1',$todaystr);
-$payday = ($today >= 15) ? $lastmday : 15;
-$daysleft = ($lastmday - $today) ? $payday - $today : 15;
+$totalBalance = $ledgerManager->getCurrentBalance();
+$daysLeft = $ledgerManager->numberOfDaysLeftInPayPeriod();
+$unclearedAmount = $ledgerManager->getUnclearedAmount();
+/**
+echo "pdo balance: ". $totalBalance. "<br>";
+echo "days left in pay period: ". $daysLeft. "<br>";
+echo "uncleared amount: ". $unclearedAmount. "<br>";
+*/
 
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
@@ -155,7 +145,7 @@ $daysleft = ($lastmday - $today) ? $payday - $today : 15;
     return false;
   }
   function confirmDeletion(id,descript) {
-    delurl = "<?=$thisScript?>?id=" + id;
+    delurl = "<?=$thisScript?>?verb=delete&id=" + id;
     var response = confirm("You're deleting \"" + descript + "\".  OK?!?");
     if (response) {
       window.location = delurl;
@@ -212,9 +202,9 @@ $daysleft = ($lastmday - $today) ? $payday - $today : 15;
 </head>
 <body>
 <div class='hideme' id='editor'>
-<form action='<?=$thisScript?>' method=GET>
+<form action='<?=$thisScript?>' method='POST'>
   <input type="hidden" name="id" id="id" value=""><br>
-  <input type="hidden" name="edit" value="1"><br>
+  <input type="hidden" name="verb" value="update"><br>
   <table align='center'>
   <tr>
     <td>description</td>
@@ -228,7 +218,7 @@ $daysleft = ($lastmday - $today) ? $payday - $today : 15;
   <tr><td>&nbsp;</td></tr>
   <tr>
     <td><label for="clr">cleared?</label></td>
-    <td><input type="checkbox" name="cleared" id="clr"></td>
+    <td><input type="checkbox" name="cleared" id="clr" value='1'></td>
   </tr>
   <tr><td>&nbsp;</td></tr>
   <tr>
@@ -248,8 +238,7 @@ $daysleft = ($lastmday - $today) ? $payday - $today : 15;
       <a class='nav' href='<?=$thisScript?>?view=summary'>Summary</a>
       <div class='nav'>
 <?
-  echo "$". sprintf('%01.2f', $balance/$daysleft). "/day for $daysleft days";
-  #echo "daysleft: $daysleft | today: [$today] | lastmday: [$lastmday]";
+  echo "$". sprintf('%01.2f', $totalBalance/$daysLeft). "/day for $daysLeft days";
 ?>
       </div>
     </td>
@@ -258,7 +247,7 @@ $daysleft = ($lastmday - $today) ? $payday - $today : 15;
 <?
 if (isset($_GET['view']) && $_GET['view'] == 'summary') {
   $dur = (isset($_GET['dur'])) ? $_GET['dur'] : 15;
-  $lnks = array('Weekly' => 7, 'Bi-Weekly' => 15, 'Monthly' => 30, 'Quarterly' => 91);
+  $lnks = array('Weekly' => 7, 'Bi-Weekly' => 15, 'Monthly' => 30, 'Quarterly' => 91, 'Bi-Annually' => 183);
   $header = "<tr height=30><td valign='top' align='center' colspan=3>";
   foreach ($lnks as $k=>$v) {
     if ($v != 7) { $header .= "&nbsp;&nbsp;|&nbsp;&nbsp;"; }
@@ -339,22 +328,22 @@ if (isset($_GET['view']) && $_GET['view'] == 'summary') {
 
   <tr>
     <td colspan='4' align='left'>
-    <form action="<?=$thisScript?>" method="get">
+    <form action="<?=$thisScript?>" method="POST">
     <select name="credit">
-    <option selected value="0">Debit</option>
-    <option value="1">Credit</option>
+		<option selected value="0">Debit</option>
+		<option value="1">Credit</option>
     </select>
-
     <input size='15' type="text" name="description" value="">
     <input id="zip" size='8' type="text" name="amount" value="">
     <input type="submit" value="OK">
+    <input type="hidden" name="verb" value="create"><br>
     </form>
     </td>
   </tr>
-<?  if ($outstanding['o']) { ?>
+<?  if ($unclearedAmount) { ?>
   <tr>
     <td colspan='4' align='right'>
-      <strong><em>$<?=$outstanding['o']?> uncleared</em></strong>
+      <strong><em>$<?=$unclearedAmount?> uncleared</em></strong>
     </td>
   </tr>
 
@@ -368,88 +357,76 @@ if (isset($_GET['view']) && $_GET['view'] == 'summary') {
 </tr>
 
 <?
-  $allQ = mysql_query("select id,credit,description,amount,time,cleared 
-                      from ". $table. " where (datediff(current_timestamp(),time)<60)
-                      order by time desc");
-                      #from ".$table." where (datediff(current_timestamp(),time)<40)
-  $k=0;
-  while ($row = mysql_fetch_array($allQ)) {
-    $id = $row['id'];
-    $credit = $row['credit'];
-    $description = $row['description'];
-    $amount = $row['amount'];
-    $time = $row['time'];
-    $cleared = $row['cleared'];
-    $Pbalance = sprintf("%01.2f",$balance);
+$transactions = $ledgerManager->retrieveARangeOfTransactions(strtotime('-60 days'));
+//echo "transactions: ". json_encode($transactions). "<br>";
+foreach ($transactions as $index => $transaction) {
+	$id = $transaction['id'];
+	$credit = $transaction['credit'];
+	$description = $transaction['description'];
+	$amount = $transaction['amount'];
+	$time = $transaction['time'];
+	$cleared = $transaction['cleared'];
+	$balance = sprintf("%01.2f",$transaction['balance']);
 
-    if ($balance > 0 ) { $bgcolor = 'ffffff'; }
-    else { $bgcolor = 'ffff00'; }
-    if (!$k) { $Sstrong = "<strong>"; $Estrong = "</strong>"; }
-    else { $Sstrong = ""; $Estrong = ""; }
-  ?>
+	if ($balance > 0 ) { $bgcolor = 'ffffff'; }
+	else { $bgcolor = 'ffff00'; }
+	if (!$index) { $Sstrong = "<strong>"; $Estrong = "</strong>"; }
+	else { $Sstrong = ""; $Estrong = ""; }
+	?>
 
-    <tr bgcolor='<?=$bgcolor?>'>
-      <td>
-        <a href='javascript:confirmDeletion("<?=$id?>","<?=$description?>")'><img src='x.png'></a>
-      </td>
+	<tr bgcolor='<?=$bgcolor?>'>
+	  <td>
+		<a href='javascript:confirmDeletion("<?=$id?>","<?=$description?>")'><img src='x.png'></a>
+	  </td>
 
-  <?
-    $tshort = preg_replace("/\d{4}-(\d{2})-(\d{2}).*/","$1/$2",$time);
+	<?
+	$tshort = preg_replace("/\d{4}-(\d{2})-(\d{2}).*/","$1/$2",$time);
 
-    if ($credit) {
-      echo "<td>". $description. " ($tshort)</td><td>$". $amount.
-           "</td><td align='right'>". $Sstrong. "$". $Pbalance. $Estrong.
-           "</td></tr>\n";
-      $balance = $balance - $amount;
-    } else {
-      if (!$cleared) {
-        echo "<td>". $description. " ($tshort) </td><td><a href='#' ".
-             "onClick=\"return editTrans('$id','$amount','$description');\">($".
-             $amount.
-             ")</a></td><td align='right'>". $Sstrong. "$". $Pbalance. $Estrong.
-             "</td></tr>\n";
-      } else {
-        echo "<td>". $description. " ($tshort) </td><td>($". $amount.
-             ")</td><td align='right'>". $Sstrong. "$". $Pbalance. $Estrong.
-             "</td></tr>\n";
-      }
-      $balance = $balance + $amount;
-    }
-    $k++;
-  }
+	if ($credit) {
+		echo "<td>". $description. " ($tshort)</td><td>$". $amount.
+			"</td><td align='right'>". $Sstrong. "$". $balance. $Estrong.
+			"</td></tr>\n";
+	} else {
+		if (!$cleared) {
+			echo "<td>". $description. " ($tshort) </td><td><a href='#' ".
+				 "onClick=\"return editTrans('$id','$amount','$description');\">($".
+				 $amount.
+				 ")</a></td><td align='right'>". $Sstrong. "$". $balance. $Estrong.
+				 "</td></tr>\n";
+		} else {
+			echo "<td>". $description. " ($tshort) </td><td>($". $amount.
+				 ")</td><td align='right'>". $Sstrong. "$". $balance. $Estrong.
+				 "</td></tr>\n";
+		}
+	}
+}
 
 
-  ## uncleared items that are outside of the previous bounds
-  $allQ = mysql_query("select id,credit,description,amount,time,cleared 
-                      from ". $table. " where time<='". $time. "' and cleared=0 and credit=0
-                      order by time desc");
-                      #from ".$table." where (datediff(current_timestamp(),time)<40)
-  $k=0;
-  while ($row = mysql_fetch_array($allQ)) {
-    $id = $row['id'];
-    $credit = $row['credit'];
-    $description = $row['description'];
-    $amount = $row['amount'];
-    $time = $row['time'];
-    $cleared = $row['cleared'];
+	$transactions = $ledgerManager->getAllUnclearedTransactionsOutsideCurrentWindow($time);
+	//echo "uncleared transaactions: ". json_encode($transactions). "<br>";
+	foreach ($transactions as $index => $transaction) {
+		$id = $transaction['id'];
+		$credit = $transaction['credit'];
+		$description = $transaction['description'];
+		$amount = $transaction['amount'];
+		$time = $transaction['time'];
+		$cleared = $transaction['cleared'];
+		$bgcolor = '7f7fff';
+	  ?>
 
-    $bgcolor = '7f7fff';
-  ?>
+		<tr bgcolor='<?=$bgcolor?>'>
+		  <td>
+			<a href='javascript:confirmDeletion("<?=$id?>","<?=$description?>")'><img src='x.png'></a>
+		  </td>
 
-    <tr bgcolor='<?=$bgcolor?>'>
-      <td>
-        <a href='javascript:confirmDeletion("<?=$id?>","<?=$description?>")'><img src='x.png'></a>
-      </td>
+	  <?
+		$tshort = preg_replace("/\d{4}-(\d{2})-(\d{2}).*/","$1/$2",$time);
 
-  <?
-    $tshort = preg_replace("/\d{4}-(\d{2})-(\d{2}).*/","$1/$2",$time);
-
-    echo "<td>". $description. " (". $tshort. ") </td><td><a href='#' ".
-         "onClick=\"return editTrans('". $id. "','". $amount. "','". $description. "');\">($".
-         $amount.
-         ")</a></td><td align='right'>OLD</td></tr>\n";
-    $k++;
-  }
+		echo "<td>". $description. " (". $tshort. ") </td><td><a href='#' ".
+			 "onClick=\"return editTrans('". $id. "','". $amount. "','". $description. "');\">($".
+			 $amount.
+			 ")</a></td><td align='right'>OLD</td></tr>\n";
+	}
 
 } ?>
 
