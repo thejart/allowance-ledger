@@ -5,12 +5,26 @@ class LedgerManager {
 	protected $table = null;
 	protected $currentBalance = null;
 
+	/**
+	 *
+	 * @param string $username
+	 * @param string $password
+	 * @param string $databae
+	 * @param string|null $table
+	 */
 	public function __construct($username, $password, $database, $table = 'ledger')
 	{
 		$this->pdo = new PDO("mysql:host=localhost;dbname=". $database, $username, $password);
 		$this->table = $table;
 	}
 
+	/**
+	 * @param int $transactionId
+	 * @param string $description
+	 * @param float $amount
+	 * @param bool $cleared
+	 * @return bool
+	 */
 	public function updateTransaction($transactionId, $description, $amount, $cleared)
 	{
 		$query = $this->pdo->prepare("
@@ -28,6 +42,12 @@ class LedgerManager {
 		]);
 	}
 
+	/**
+	 * @param string $description
+	 * @param float $amount
+	 * @param bool $cleared
+	 * @return bool
+	 */
 	public function insertTransaction($description, $amount, $credit)
 	{
 		$query = $this->pdo->prepare("
@@ -42,6 +62,10 @@ class LedgerManager {
 		]);
 	}
 
+	/**
+	 * @param int $transactionId
+	 * @return bool
+	 */
 	public function deleteTransaction($transactionId)
 	{
 		$query = $this->pdo->prepare("
@@ -82,6 +106,9 @@ class LedgerManager {
 		$this->currentBalance = $totalCredits - $totalDebits;
 	}
 
+	/**
+	 * @return float
+	 */
 	public function getCurrentBalance()
 	{
 		if (!isset($this->currentBalance)) {
@@ -90,6 +117,9 @@ class LedgerManager {
 		return $this->currentBalance;
 	}
 
+	/**
+	 * @return float
+	 */
 	public function getUnclearedAmount()
 	{
 		$query = $this->pdo->prepare("
@@ -101,18 +131,29 @@ class LedgerManager {
 		return (float)$row['amount'];
 	}
 
-	protected function getNextPayday()
-	{
-		// TODO: 
-		// if today <= 15 the return 15th of month
-		// else select last_day(now())
-	}
-
+	/**
+	 * @return int
+	 */
 	public function numberOfDaysLeftInPayPeriod()
 	{
-		// use the results of $this->getNextPayday() to figure this out
+		$todaysDate = (int)date('d');
+		if ($todaysDate <= 15) {
+			return 15 - $todaysDate + 1;
+		} else {
+			$query = $this->pdo->query("
+				select (datediff(last_day(now()), now()) + 1) as daysLeft
+			");
+			$row = $query->fetch(PDO::FETCH_ASSOC);
+			return (int)$row['daysLeft'];
+		}
 	}
 
+	/**
+	 * @param string $startDate
+	 * @param string|null $endDate
+	 * @param float|null $runningBalance
+	 * @return mixed[]
+	 */
 	public function retrieveARangeOfTransactions($startDate, $endDate = 'now()', $runningBalance = null)
 	{
 		// TODO: finalize support for last two parmas.  this will be handy when requesting
@@ -148,21 +189,49 @@ class LedgerManager {
 		return $allTransactions;
 	}
 
-	public function getAllUnclearedTransactionsOutsideCurrentWindow($startDate)
+	/**
+	 * @param string $cutOffDate
+	 */
+	public function getAllUnclearedTransactionsOutsideCurrentWindow($cutOffDate)
 	{
-		// select id,credit,description,amount,time,cleared from ledger
-		// where time<='$dateInThePast' and cleared=0 and credit=0 order by time desc"
-
+		$query = $this->pdo->prepare("
+			select id, credit, description, amount, time, cleared
+			from {$this->table}
+			where time <= :cutOffDate
+			and cleared=0
+			and credit=0
+			order by time desc
+		");
+		return $query->execute([":cutOffDate" => $cutOffDate]);
 	}
 
+	/**
+	 * @param string $description
+	 * @param float $amount
+	 * @param bool $credit
+	 * @return bool
+	 */
 	public function validateCreate($description, $amount, $credit)
 	{
 		return true;
 	}
+
+	/**
+	 * @param int $id
+	 * @param string $description
+	 * @param float $amount
+	 * @param bool $credit
+	 * @return bool
+	 */
 	public function validateUpdate($id, $description, $amount, $cleared)
 	{
 		return true;
 	}
+
+	/**
+	 * @param int $id
+	 * @return bool
+	 */
 	public function validateDelete($id)
 	{
 		return true;
