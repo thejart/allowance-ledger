@@ -122,7 +122,7 @@ class LedgerManager {
 	 */
 	public function getUnclearedAmount()
 	{
-		$query = $this->pdo->prepare("
+		$query = $this->pdo->query("
 			select sum(amount) amount
 			from {$this->table}
 			where credit = false and cleared = false
@@ -166,7 +166,7 @@ class LedgerManager {
 		$query = $this->pdo->prepare("
 			select id, credit, description, amount, time, cleared
 			from {$this->table}
-			where time >= :startDate
+			where time >= from_unixtime(:startDate)
 			and time <= :endDate
 			order by time desc
 		");
@@ -202,7 +202,8 @@ class LedgerManager {
 			and credit=0
 			order by time desc
 		");
-		return $query->execute([":cutOffDate" => $cutOffDate]);
+		$query->execute([":cutOffDate" => $cutOffDate]);
+		return $query->fetchAll(PDO::FETCH_ASSOC);
 	}
 
 	/**
@@ -213,7 +214,7 @@ class LedgerManager {
 	 */
 	public function validateCreate($description, $amount, $credit)
 	{
-		return true;
+		return $description && $amount && !is_null($credit);
 	}
 
 	/**
@@ -225,7 +226,7 @@ class LedgerManager {
 	 */
 	public function validateUpdate($id, $description, $amount, $cleared)
 	{
-		return true;
+		return $id && $description && $amount && !is_null($cleared);
 	}
 
 	/**
@@ -234,7 +235,7 @@ class LedgerManager {
 	 */
 	public function validateDelete($id)
 	{
-		return true;
+		return $id;
 	}
 }
 
