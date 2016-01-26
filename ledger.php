@@ -40,6 +40,9 @@ $description = getRequestParam('description');
 $amount = getRequestParam('amount');
 $credit = getRequestParam('credit');
 $cleared = getRequestParam('cleared', 0);
+$duration = getRequestParam('duration', 15);
+$view = getRequestParam('view');
+$windowStartDate = date('Y-m-d', strtotime("-". $duration. " days"));
 
 if (isset($verb)) {
 	if ($verb == 'update' &&
@@ -60,7 +63,7 @@ if (isset($verb)) {
 	}
 }
 
-$totalBalance = $ledgerManager->getCurrentBalance();
+$totalBalance = $ledgerManager->getBalance();
 $daysLeft = $ledgerManager->numberOfDaysLeftInPayPeriod();
 $unclearedAmount = $ledgerManager->getUnclearedAmount();
 /**
@@ -245,54 +248,68 @@ echo "uncleared amount: ". $unclearedAmount. "<br>";
   </tr>
 
 <?
-if (isset($_GET['view']) && $_GET['view'] == 'summary') {
-  $dur = (isset($_GET['dur'])) ? $_GET['dur'] : 15;
+if ($view && $view == 'summary') {
   $lnks = array('Weekly' => 7, 'Bi-Weekly' => 15, 'Monthly' => 30, 'Quarterly' => 91, 'Bi-Annually' => 183);
   $header = "<tr height=30><td valign='top' align='center' colspan=3>";
   foreach ($lnks as $k=>$v) {
     if ($v != 7) { $header .= "&nbsp;&nbsp;|&nbsp;&nbsp;"; }
-    if ($v == $dur) {
+    if ($v == $duration) {
       $header .= "$k";
     } else {
-      $header .= "<a href='". $thisScript. "?view=summary&dur=$v'>$k</a>";
+      $header .= "<a href='". $thisScript. "?view=summary&duration=$v'>$k</a>";
     }
   }
   print "$header</td></tr>\n";
+
   $start = 0;
   $cycles = 6;
-  for($i=0;$i<$cycles;$i++) {
-    $x = $dur + $start - 1;  # we're really only including the following day
-    $q = mysql_query("select subdate(now(), interval $x day) as d");
+  for($i=0; $i<$cycles; $i++) {
+	/**
+	 * The following block needs to be replaced.  It includes a bug
+	 * where each duration block is missing a day's worth of data,
+	 * plus it's overly complicated!
+	 */
+    $x = $duration + $start - 1;  # we're really only including the following day
+    $q = mysql_query("select subdate(now(), interval $x day) as f,
+						subdate(now(), interval $start day) as t");
     $r = mysql_fetch_array($q);
-    $from = $r['d'];
+    $from = $r['f'];
+    $to = $r['t'];
     $from = preg_replace("/\d{4}-(\d{2})-(\d{2}).*/","$1/$2",$from);
-    $q = mysql_query("select subdate(now(), interval $start day) as d");
-    $r = mysql_fetch_array($q);
-    $to = $r['d'];
     $to = preg_replace("/\d{4}-(\d{2})-(\d{2}).*/","$1/$2",$to);
-    $creditS = "select sum(amount) s from ". $table. " where credit=1 and ".
-               "(datediff(now(),time)<". ($dur+$start). ") and ".
-               "(datediff(now(),time)>=". $start. ")";
+
+
+	// This sums up the credit amounts within this duration
+    $creditS = "select sum(amount) s from ". $table.
+				" where credit=1 and ".
+				"(datediff(now(),time)<". ($duration+$start). ") and ".
+				"(datediff(now(),time)>=". $start. ")";
     $creditQ = mysql_query($creditS);
     $c = mysql_fetch_array($creditQ);
     $tot = ($c['s']) ? " <b>\$". $c['s']. "</b>" : "";
+
     print "
     <tr>
       <td colspan=2><em>$from to $to</em>$tot</td>
     </tr>\n";
 
-    ## sum for calculating percentage
+    // This sums up the debit amounts within this duration
     $dursummary = "select sum(amount) as s from ". $table.
-                      " where credit=0 and (datediff(now(),time)<". ($dur+$start).
-                      ") and (datediff(now(),time)>=". $start. ")";
+					" where credit=0 and ".
+					"(datediff(now(),time)<". ($duration+$start). ") and ".
+					"(datediff(now(),time)>=". $start. ")";
     $durQ = mysql_query($dursummary);
     $row = mysql_fetch_array($durQ);
     $sum = $row['s'];
 
+	// This sums up the debit amounts within this duration, grouped by description
+	// ...this query can replace the above query and just sum 'em all up in PHP
     $dursummary = "select sum(amount) as s,description from ". $table.
-                      " where credit=0 and (datediff(now(),time)<". ($dur+$start).
-                      ") and (datediff(now(),time)>=". $start. ")
-                      group by description order by s desc";
+					" where credit=0 and ".
+					"(datediff(now(),time)<". ($duration+$start). ") and ".
+					"(datediff(now(),time)>=". $start. ") ".
+					"group by description ".
+					"order by s desc";
                       #order by s group by description with rollup";
     print "<!-- $dursummary -->\n";
     $durQ = mysql_query($dursummary);
@@ -321,7 +338,7 @@ if (isset($_GET['view']) && $_GET['view'] == 'summary') {
       <td>&nbsp;</td>
       <td align='right'>$$sum</td>
     </tr>\n";
-    $start+=$dur;
+    $start+=$duration;
   }
 } else {
 ?>
@@ -357,7 +374,8 @@ if (isset($_GET['view']) && $_GET['view'] == 'summary') {
 </tr>
 
 <?
-$transactions = $ledgerManager->retrieveARangeOfTransactions(strtotime('-60 days'));
+
+$transactions = $ledgerManager->retrieveARangeOfTransactions($windowStartDate);
 //echo "transactions: ". json_encode($transactions). "<br>";
 foreach ($transactions as $index => $transaction) {
 	$id = $transaction['id'];
