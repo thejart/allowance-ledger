@@ -18,6 +18,26 @@ class LedgerManager {
 	}
 
 	/**
+	 * @param string $description
+	 * @param float $amount
+	 * @param bool $cleared
+	 * @return bool
+	 */
+	public function insertTransaction($description, $amount, $credit)
+	{
+		$query = $this->pdo->prepare("
+			insert into {$this->table}
+			(description, amount, credit)
+			values (:description, :amount, :credit)
+		");
+		return $query->execute([
+			':description' => $description,
+			':amount' => $amount,
+			':credit' => $credit,
+		]);
+	}
+
+	/**
 	 * @param int $transactionId
 	 * @param string $description
 	 * @param float $amount
@@ -42,26 +62,6 @@ class LedgerManager {
 	}
 
 	/**
-	 * @param string $description
-	 * @param float $amount
-	 * @param bool $cleared
-	 * @return bool
-	 */
-	public function insertTransaction($description, $amount, $credit)
-	{
-		$query = $this->pdo->prepare("
-			insert into {$this->table}
-			(description, amount, credit)
-			values (:description, :amount, :credit)
-		");
-		return $query->execute([
-			':description' => $description,
-			':amount' => $amount,
-			':credit' => $credit,
-		]);
-	}
-
-	/**
 	 * @param int $transactionId
 	 * @return bool
 	 */
@@ -76,14 +76,14 @@ class LedgerManager {
 
 	/**
 	 * This method returns the sum of all credit or debit transactions
-	 * for (an optional) date range
+	 * for date range.
 	 *
 	 * @param bool $credit
-	 * @param string|null $startDate
-	 * @param string|null $endDate
+	 * @param string $startDate
+	 * @param string $endDate
 	 * @return float
 	 */
-	protected function getTotalSumCreditTransactions($credit = true, $startDate = null, $endDate = null)
+	protected function getTotalSumOfLikeTransactionsForWindow($credit, $startDate, $endDate)
 	{
 		$queryString = "
 			select sum(amount) amount
@@ -110,8 +110,30 @@ class LedgerManager {
 	}
 
 	/**
-	 * This method returns a balance for a given date range, OR sets the value
-	 * of the current balance to the class property $overallBalance
+	 * @param string $startDate
+	 * @param string $endDate
+	 * @return float
+	 */
+	public function getCreditSumForWindow($startDate, $endDate)
+	{
+		return $this->getTotalSumOfLikeTransactionsForWindow(true, $startDate, $endDate);
+	}
+
+	/**
+	 * @param string $startDate
+	 * @param string $endDate
+	 * @return float
+	 */
+	public function getDebitSumForWindow($startDate, $endDate)
+	{
+		return $this->getTotalSumOfLikeTransactionsForWindow(false, $startDate, $endDate);
+	}
+
+	/**
+	 * This method returns a balance for a given date range.
+	 * If no range is set, the current overall balance is calculated
+	 * and set as the class property $overallBalance. This is the only
+	 * place this value is set.
 	 *
 	 * @param string|null $startDate
 	 * @param string|null $endDate
@@ -119,8 +141,8 @@ class LedgerManager {
 	 */
 	protected function calculateBalance($startDate = null, $endDate = null)
 	{
-		$totalCredits = $this->getTotalSumCreditTransactions(true, $startDate, $endDate);
-		$totalDebits = $this->getTotalSumCreditTransactions(false, $startDate, $endDate);
+		$totalCredits = $this->getCreditSumForWindow($startDate, $endDate);
+		$totalDebits = $this->getDebitSumForWindow($startDate, $endDate);
 		$balance = $totalCredits - $totalDebits;
 		if (!$startDate && !$endDate) {
 			$this->overallBalance = $balance;
@@ -129,25 +151,8 @@ class LedgerManager {
 	}
 
 	/**
-	 * @param string $startDate
-	 * @param string $endDate
-	 */
-	public function getCreditSumForWindow($startDate, $endDate)
-	{
-		return $this->getTotalSumCreditTransactions(true, $startDate, $endDate);
-	}
-
-	/**
-	 * @param string $startDate
-	 * @param string $endDate
-	 */
-	public function getDebitSumForWindow($startDate, $endDate)
-	{
-		return $this->getTotalSumCreditTransactions(false, $startDate, $endDate);
-	}
-
-	/**
-	 * This method returns a balance for a given date, now() by default
+	 * This method returns a balance for a given date range, if set
+	 * and appropriate the cached value is returned.
 	 *
 	 * @param string|null $startDate
 	 * @param string|null $endDate
@@ -178,20 +183,47 @@ class LedgerManager {
 	}
 
 	/**
-	 * @return int
+	 * @param string $cutOffDate
+	 * @return mixed[]
 	 */
-	public function numberOfDaysLeftInPayPeriod()
+	public function getAllUnclearedTransactionsOutsideCurrentWindow($cutOffDate)
 	{
-		$todaysDate = (int)date('d');
-		if ($todaysDate <= 15) {
-			return 15 - $todaysDate + 1;
-		} else {
-			$query = $this->pdo->query("
-				select (datediff(last_day(now()), now()) + 1) as daysLeft
-			");
-			$row = $query->fetch(PDO::FETCH_ASSOC);
-			return (int)$row['daysLeft'];
-		}
+		$query = $this->pdo->prepare("
+			select id, credit, description, amount, time, cleared
+			from {$this->table}
+			where time <= :cutOffDate
+			and cleared=0
+			and credit=0
+			order by time desc
+		");
+		$query->execute([":cutOffDate" => $cutOffDate]);
+		return $query->fetchAll(PDO::FETCH_ASSOC);
+	}
+
+	/**
+	 * This method returns a list of grouped, summed transaction.  It's used
+	 * to tally up common transaction types over a date range.  ie. How much
+	 * money did I spend on beer this month?
+	 *
+	 * @param string $startDate
+	 * @param string|null $endDate
+	 * @return mixed[]
+	 */
+	public function retrieveGroupedSumsOfTransactions($startDate, $endDate = 'now()')
+	{
+		$query = $this->pdo->prepare("
+			select sum(amount) amount, description
+			from {$this->table}
+			where time >= :startDate
+			and time <= :endDate
+			group by description
+			order by amount desc
+		");
+		$query->execute([
+			":startDate" => $startDate,
+			":endDate" => $endDate
+		]);
+		return $query->fetchAll(PDO::FETCH_ASSOC);
 	}
 
 	/**
@@ -210,6 +242,7 @@ class LedgerManager {
 	public function retrieveARangeOfTransactions($windowStartDate, $endDate = null)
 	{
 		$allTransactions = [];
+		// Retrieve the balance of all transactions from epoch to $endDate
 		$runningBalance = $this->getBalance(null, $endDate);
 
 		$queryString = "
@@ -227,12 +260,14 @@ class LedgerManager {
 			$query->bindParam(':endDate', $endDate);
 		}
 		$query->execute();
-
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+
 		foreach ($rows as $row) {
 			$row['balance'] = $runningBalance;
 			$allTransactions[] = $row;
-			// Realize that we're calculating balances backwards in time
+			// We're iterating through transactions backwards
+			// in time, so getting the next value requires
+			// ADDING debits and SUBTRACTING credits.
 			if ($row['credit'] == 1) {
 				$runningBalance -= $row['amount'];
 			} else {
@@ -243,46 +278,25 @@ class LedgerManager {
 	}
 
 	/**
-	 * This method returns a list of grouped, summed transaction.  It's used
-	 * to tally up common transaction types over a date range.  ie. How much
-	 * money did I spend on beer this month?
+	 * This method assumes that the pay days we're looking for are
+	 * the 15th and last day of the month.  No regard is given to
+	 * weekends, which is on purpose for as-eve-as-possible
+	 * distribution of allowance funds.
 	 *
-	 * @param string $startDate
-	 * @param string|null $endDate
-	 * @return mixed[]
+	 * @return int
 	 */
-	public function retrieveGroupSumsOfDebitTransactions($startDate, $endDate = 'now()')
+	public function numberOfDaysLeftInPayPeriod()
 	{
-		$query = $this->pdo->prepare("
-			select sum(amount) amount, description
-			from {$this->table}
-			where time >= :startDate
-			and time <= :endDate
-			group by description
-			order by amount desc
-		");
-		$query->execute([
-			":startDate" => $startDate,
-			":endDate" => $endDate
-		]);
-		return $query->fetchAll(PDO::FETCH_ASSOC);
-	}
-
-	/**
-	 * @param string $cutOffDate
-	 */
-	public function getAllUnclearedTransactionsOutsideCurrentWindow($cutOffDate)
-	{
-		$query = $this->pdo->prepare("
-			select id, credit, description, amount, time, cleared
-			from {$this->table}
-			where time <= :cutOffDate
-			and cleared=0
-			and credit=0
-			order by time desc
-		");
-		$query->execute([":cutOffDate" => $cutOffDate]);
-		return $query->fetchAll(PDO::FETCH_ASSOC);
+		$todaysDate = (int)date('d');
+		if ($todaysDate <= 15) {
+			return 15 - $todaysDate + 1;
+		} else {
+			$query = $this->pdo->query("
+				select (datediff(last_day(now()), now()) + 1) as daysLeft
+			");
+			$row = $query->fetch(PDO::FETCH_ASSOC);
+			return (int)$row['daysLeft'];
+		}
 	}
 
 	/**
