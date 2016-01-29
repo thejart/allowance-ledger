@@ -91,10 +91,10 @@ class LedgerManager {
 			where credit = :credit
 		";
 		if ($startDate) {
-			$queryString .= "and time > :startDate ";
+			$queryString .= " and time > :startDate";
 		}
 		if ($endDate) {
-			$queryString .= "and time <= :endDate ";
+			$queryString .= " and time <= :endDate";
 		}
 		$query = $this->pdo->prepare($queryString);
 		$query->bindParam(':credit', $credit);
@@ -217,7 +217,7 @@ class LedgerManager {
 			where time > :startDate
 		";
 		if ($endDate) {
-			$queryString .= "and time <= :endDate ";
+			$queryString .= " and time <= :endDate";
 		}
 		$queryString .= "
 			and credit = 0
@@ -231,37 +231,6 @@ class LedgerManager {
 		}
 		$query->execute();
 		return $query->fetchAll(PDO::FETCH_ASSOC);
-	}
-
-	/**
-	 *
-	 * string $startDate
-	 * string|null $endDate
-	 *
-	 */
-	public function retrieveGroupedSumsOfTransactionsAsObjects($startDate, $endDate = null)
-	{
-		$transactionObjects = [];
-		$transactions = $this->retrieveGroupedSumsOfTransactions($startDate, $endDate);
-		if (empty($transactions)) {
-			return [];
-		}
-		$debitSum = $this->getDebitSumForWindow($startDate, $endDate);
-		$creditSum = $this->getCreditSumForWindow($startDate, $endDate);
-		foreach ($transactions as $t) {
-			$transaction = new stdClass();
-			$transaction->amount = $t['amount'];
-			$transaction->description = $t['description'];
-			$transaction->percent = sprintf('%01.1f', 100*$t['amount']/$debitSum);
-			$transactionObjects[] = $transaction;
-		}
-		$transactionGroup = new stdClass();
-		$transactionGroup->startDate = $startDate;
-		$transactionGroup->endDate = $endDate;
-		$transactionGroup->debitSum = $debitSum;
-		$transactionGroup->creditSum = $creditSum;
-		$transactionGroup->transactions = $transactionObjects;
-		return $transactionGroup;
 	}
 
 	/**
@@ -289,9 +258,9 @@ class LedgerManager {
 			where time >= :windowStartDate
 		";
 		if ($endDate) {
-			$queryString .= "and time <= :endDate ";
+			$queryString .= " and time <= :endDate";
 		}
-		$queryString .= "order by time desc ";
+		$queryString .= " order by time desc";
 		$query = $this->pdo->prepare($queryString);
 		$query->bindParam(':windowStartDate', $windowStartDate);
 		if ($endDate) {
@@ -365,6 +334,39 @@ class LedgerManager {
 			$transactionObjects[] = $transaction;
 		}
 		return $transactionObjects;
+	}
+
+	/**
+	 * This calls retrieveGroupedSumsOfTransactions() and
+	 * converts the associative array response to a standard class
+	 *
+	 * @param string $startDate
+	 * @param string|null $endDate
+	 * @return stdClass[]
+	 */
+	public function retrieveGroupedSumsOfTransactionsAsObjects($startDate, $endDate = null)
+	{
+		$transactionObjects = [];
+		$transactions = $this->retrieveGroupedSumsOfTransactions($startDate, $endDate);
+		if (empty($transactions)) {
+			return [];
+		}
+		$debitSum = $this->getDebitSumForWindow($startDate, $endDate);
+		$creditSum = $this->getCreditSumForWindow($startDate, $endDate);
+		foreach ($transactions as $t) {
+			$transaction = new stdClass();
+			$transaction->amount = $t['amount'];
+			$transaction->description = $t['description'];
+			$transaction->percent = sprintf('%01.1f', 100*$t['amount']/$debitSum);
+			$transactionObjects[] = $transaction;
+		}
+		$transactionGroup = new stdClass();
+		$transactionGroup->startDate = $startDate;
+		$transactionGroup->endDate = $endDate;
+		$transactionGroup->debitSum = $debitSum;
+		$transactionGroup->creditSum = $creditSum;
+		$transactionGroup->transactions = $transactionObjects;
+		return $transactionGroup;
 	}
 
 	/**
