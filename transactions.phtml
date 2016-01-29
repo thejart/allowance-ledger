@@ -30,41 +30,35 @@
 
 {if $transactions}
 {foreach $transactions as $index => $t}
-	{$Sstrong = ''}
-	{$Estrong = ''}
 	{$balance = sprintf('%01.2f',$t->balance)}
 	{if $t->balance > 0}
-		{$bgcolor = 'ffffff'}
+		{$bgcolor = '#ffffff'}
 	{else}
-		{$bgcolor = 'ffff00'}
-	{/if}
-	{if !$index}
-		{$Sstrong = '<strong>'}
-		{$Estrong = '</strong>'}
+		{$bgcolor = '#ffff00'}
 	{/if}
 
 <tr bgcolor='{$bgcolor}'>
 	<td>
 		<a href='javascript:confirmDeletion("{$t->id}", "{$t->description}")'><img src='x.png'></a>
 	</td>
+	<td>{$t->description} ({$t->tshort})</td>
 
 	{if $t->credit}
-	<td>{$t->description} ({$t->tshort})</td>
 	<td>${$t->amount}</td>
-	<td align='right'>{$Sstrong}${$balance}{$Estrong}</td>
-</tr>
 	{else}
 		{if !$t->cleared}
-	<td>{$t->description} ({$t->tshort})</td>
 	<td><a href='# ' onClick="return editTrans('{$t->id}', '{$t->amount}', '{$t->description}');">(${$t->amount})</a></td>
-	<td align='right'>{$Sstrong}${$balance}{$Estrong}</td></tr>
 		{else}
-	<td>{$t->description} ({$t->tshort}) </td>
 	<td>(${$t->amount})</td>
-	<td align='right'>{$Sstrong}${$balance}{$Estrong}</td>
-</tr>
 		{/if}
 	{/if}
+
+	{if !$index}
+	<td align='right'><b>${$balance}</b></td>
+	{else}
+	<td align='right'>${$balance}</td>
+	{/if}
+</tr>
 {/foreach}
 {/if}
 
