@@ -91,10 +91,10 @@ class LedgerManager {
 			where credit = :credit
 		";
 		if ($startDate) {
-			$queryString .= "and time >= :startDate";
+			$queryString .= "and time >= :startDate ";
 		}
 		if ($endDate) {
-			$queryString .= "and time <= :endDate";
+			$queryString .= "and time <= :endDate ";
 		}
 		$query = $this->pdo->prepare($queryString);
 		$query->bindParam(':credit', $credit);
@@ -209,21 +209,59 @@ class LedgerManager {
 	 * @param string|null $endDate
 	 * @return mixed[]
 	 */
-	public function retrieveGroupedSumsOfTransactions($startDate, $endDate = 'now()')
+	public function retrieveGroupedSumsOfTransactions($startDate, $endDate = null)
 	{
-		$query = $this->pdo->prepare("
+		$queryString = "
 			select sum(amount) amount, description
 			from {$this->table}
 			where time >= :startDate
-			and time <= :endDate
+		";
+		if ($endDate) {
+			$queryString .= "and time <= :endDate ";
+		}
+		$queryString .= "
+			and credit = 0
 			group by description
 			order by amount desc
-		");
-		$query->execute([
-			":startDate" => $startDate,
-			":endDate" => $endDate
-		]);
+		";
+		$query = $this->pdo->prepare($queryString);
+		$query->bindParam(':startDate', $startDate);
+		if ($endDate) {
+			$query->bindParam(':endDate', $endDate);
+		}
+		$query->execute();
 		return $query->fetchAll(PDO::FETCH_ASSOC);
+	}
+
+	/**
+	 *
+	 * string $startDate
+	 * string|null $endDate
+	 *
+	 */
+	public function retrieveGroupedSumsOfTransactionsAsObjects($startDate, $endDate = null)
+	{
+		$transactionObjects = [];
+		$transactions = $this->retrieveGroupedSumsOfTransactions($startDate, $endDate);
+		if (empty($transactions)) {
+			return [];
+		}
+		$debitSum = $this->getDebitSumForWindow($startDate, $endDate);
+		$creditSum = $this->getCreditSumForWindow($startDate, $endDate);
+		foreach ($transactions as $t) {
+			$transaction = new stdClass();
+			$transaction->amount = $t['amount'];
+			$transaction->description = $t['description'];
+			$transaction->percent = sprintf('%01.1f', 100*$t['amount']/$debitSum);
+			$transactionObjects[] = $transaction;
+		}
+		$transactionGroup = new stdClass();
+		$transactionGroup->startDate = $startDate;
+		$transactionGroup->endDate = $endDate;
+		$transactionGroup->debitSum = $debitSum;
+		$transactionGroup->creditSum = $creditSum;
+		$transactionGroup->transactions = $transactionObjects;
+		return $transactionGroup;
 	}
 
 	/**
@@ -253,7 +291,7 @@ class LedgerManager {
 		if ($endDate) {
 			$queryString .= "and time <= :endDate ";
 		}
-		$queryString .= "order by time desc";
+		$queryString .= "order by time desc ";
 		$query = $this->pdo->prepare($queryString);
 		$query->bindParam(':windowStartDate', $windowStartDate);
 		if ($endDate) {
@@ -275,6 +313,58 @@ class LedgerManager {
 			}
 		}
 		return $allTransactions;
+	}
+
+	/**
+	 * This calls retrieveARangeOfTransactions() and
+	 * converts the associative array response to a standard class
+	 *
+	 * @param string $windowStartDate
+	 * @param string|null $endDate
+	 * @return stdClass[]
+	 */
+	public function retrieveARangeOfTransactionsAsObjects($windowStartDate, $endDate = null)
+	{
+		$transactionObjects = [];
+		$transactions = $this->retrieveARangeOfTransactions($windowStartDate, $endDate);
+		foreach ($transactions as $t) {
+			$transaction = new stdClass();
+			$transaction->id = $t['id'];
+			$transaction->credit = $t['credit'];
+			$transaction->description = $t['description'];
+			$transaction->amount = $t['amount'];
+			$transaction->time = $t['time'];
+			$transaction->cleared = $t['cleared'];
+			$transaction->balance = $t['balance'];
+			$transaction->tshort = preg_replace('/\d{4}-(\d{2})-(\d{2}).*/', '$1/$2', $t['time']);
+			$transactionObjects[] = $transaction;
+		}
+		return $transactionObjects;
+	}
+
+	/**
+	 * This calls getAllUnclearedTransactionsOutsideCurrentWindow() and
+	 * converts the associative array response to a standard class
+	 *
+	 * @param string $cutOffDate
+	 * @return stdClass[]
+	 */
+	public function getAllUnclearedTransactionsOutsideCurrentWindowAsObjects($cutOffDate)
+	{
+		$transactionObjects = [];
+		$transactions = $this->getAllUnclearedTransactionsOutsideCurrentWindow($cutOffDate);
+		foreach ($transactions as $t) {
+			$transaction = new stdClass();
+			$transaction->id = $t['id'];
+			$transaction->credit = $t['credit'];
+			$transaction->description = $t['description'];
+			$transaction->amount = $t['amount'];
+			$transaction->time = $t['time'];
+			$transaction->cleared = $t['cleared'];
+			$transaction->tshort = preg_replace('/\d{4}-(\d{2})-(\d{2}).*/', '$1/$2', $t['time']);
+			$transactionObjects[] = $transaction;
+		}
+		return $transactionObjects;
 	}
 
 	/**
