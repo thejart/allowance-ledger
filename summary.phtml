@@ -1,0 +1,44 @@
+<tr height=30>
+	<td valign='top' align='center' colspan=3>
+	{$header}
+	</td>
+</tr>
+
+{foreach $transactionGroups as $transactionGroup}
+	{$from = $transactionGroup->startDate}
+	{$to = $transactionGroup->endDate}
+	{$debitSum = $transactionGroup->debitSum}
+	{$creditSum = $transactionGroup->creditSum}
+
+<tr>
+	<td colspan=2>
+		<em>{$from} to {$to}</em>
+		<b>${$creditSum}</b>
+	</td>
+</tr>
+
+	{$i = 1}
+	{foreach $transactionGroup->transactions as $t}
+		{if $i%2}
+			{$bgcolor = '#ffffff'}
+		{else}
+			{$bgcolor = '#c0c0c0'}
+		{/if}
+<tr bgcolor='{$bgcolor}'>
+	<td align='left'>{$t->description}</td>
+	<td align='right'>&nbsp;&nbsp;<em>{$t->percent}%</em></td>
+		{if !$t->description}
+	<td align='right'><b>${$t->amount}</b></td>
+		{else}
+	<td align='right'>${$t->amount}</td>
+		{/if}
+</tr>
+		{$i++}
+	{/foreach}
+<tr bgcolor='#ffffff'>
+	<td>&nbsp;</td>
+	<td>&nbsp;</td>
+	<td align='right'>${$debitSum}</td>
+</tr>
+
+{/foreach}

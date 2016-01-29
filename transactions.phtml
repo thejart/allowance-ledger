@@ -1,0 +1,83 @@
+<tr>
+	<td colspan='4' align='left'>
+		<form action="{$thisScript}" method="POST">
+		<select name="credit">
+			<option selected value="0">Debit</option>
+			<option value="1">Credit</option>
+		</select>
+		<input size='15' type="text" name="description" value="">
+		<input id="zip" size='8' type="text" name="amount" value="">
+		<input type="submit" value="OK">
+		<input type="hidden" name="verb" value="create"><br>
+		</form>
+	</td>
+</tr>
+
+{if $unclearedAmount}
+<tr>
+	<td colspan='4' align='right'>
+		<strong><em>${$unclearedAmount} uncleared</em></strong>
+	</td>
+</tr>
+{/if}
+
+<tr>
+	<td>&nbsp;</td>
+	<td>&nbsp;</td>
+	<td><i>amount</i></td>
+	<td align='right'><i>balance</i></td>
+</tr>
+
+{if $transactions}
+{foreach $transactions as $index => $t}
+	{$Sstrong = ''}
+	{$Estrong = ''}
+	{$balance = sprintf('%01.2f',$t->balance)}
+	{if $t->balance > 0}
+		{$bgcolor = 'ffffff'}
+	{else}
+		{$bgcolor = 'ffff00'}
+	{/if}
+	{if !$index}
+		{$Sstrong = '<strong>'}
+		{$Estrong = '</strong>'}
+	{/if}
+
+<tr bgcolor='{$bgcolor}'>
+	<td>
+		<a href='javascript:confirmDeletion("{$t->id}", "{$t->description}")'><img src='x.png'></a>
+	</td>
+
+	{if $t->credit}
+	<td>{$t->description} ({$t->tshort})</td>
+	<td>${$t->amount}</td>
+	<td align='right'>{$Sstrong}${$balance}{$Estrong}</td>
+</tr>
+	{else}
+		{if !$t->cleared}
+	<td>{$t->description} ({$t->tshort})</td>
+	<td><a href='# ' onClick="return editTrans('{$t->id}', '{$t->amount}', '{$t->description}');">(${$t->amount})</a></td>
+	<td align='right'>{$Sstrong}${$balance}{$Estrong}</td></tr>
+		{else}
+	<td>{$t->description} ({$t->tshort}) </td>
+	<td>(${$t->amount})</td>
+	<td align='right'>{$Sstrong}${$balance}{$Estrong}</td>
+</tr>
+		{/if}
+	{/if}
+{/foreach}
+{/if}
+
+{if $unclearedTransactions}
+{foreach $unclearedTransactions as $index => $t}
+<tr bgcolor='7f7fff'>
+	<td>
+		<a href='javascript:confirmDeletion("{$t->id}", "{$t->description}")'><img src='x.png'></a>
+	</td>
+	<td>{$t->description} ({$t->tshort}) </td>
+	<td><a href='#' onClick="return editTrans('{$t->id}', '{$t->amount}', '{$t->description}');">(${$t->amount})</a></td>
+	<td align='right'>OLD</td>
+</tr>
+{/foreach}
+{/if}
+
