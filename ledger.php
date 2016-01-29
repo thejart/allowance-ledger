@@ -1,4 +1,5 @@
 <?php
+$startTime = microtime(true);
 include 'ledgerManager.php';
 // Credit to https://github.com/adamtomecek/Template
 include 'templateManager/Template.php';
@@ -16,7 +17,7 @@ $description = getRequestParam('description');
 $amount = getRequestParam('amount');
 $credit = getRequestParam('credit');
 $cleared = getRequestParam('cleared', 0);
-$duration = getRequestParam('duration', 15);
+$duration = getRequestParam('duration', 30);
 $windowStartDate = date('Y-m-d', strtotime("-". $duration. " days"));
 
 if (isset($verb)) {
@@ -37,7 +38,7 @@ if (isset($verb)) {
 		redirectTo("{$host}/{$path}{$thisScript}");
 	}
 	elseif ($verb == 'summary') {
-		list($header, $transactionGroups) = setupSummary($thisScript, $table, $duration, $ledgerManager);
+		list($header, $transactionGroups) = setupSummary($thisScript, $duration, $ledgerManager);
 		//echo json_encode($transactionGroups). "<br>";
 		$template = new Template();
 		$template->thisScript = $thisScript;
@@ -65,6 +66,8 @@ if (isset($verb)) {
 		echo '(nope)';
 	}
 }
+$logString = "[jart] verb: ". $verb. " duration: ". $duration. " in secs: ". (microtime(true)-$startTime);
+error_log($logString);
 
 function setupEnvironment() {
 	try {
@@ -84,7 +87,7 @@ function redirectTo($URL) {
 	header( "Location: https://{$URL}");
 	exit(0); // This is Optional but suggested, to avoid any accidental output
 }
-function setupSummary($thisScript, $table, $duration, $ledgerManager) {
+function setupSummary($thisScript, $duration, $ledgerManager) {
 	$lnks = [
 		'Weekly' => 7,
 		'Bi-Weekly' => 15,
