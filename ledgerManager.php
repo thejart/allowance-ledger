@@ -91,7 +91,7 @@ class LedgerManager {
 			where credit = :credit
 		";
 		if ($startDate) {
-			$queryString .= "and time >= :startDate ";
+			$queryString .= "and time > :startDate ";
 		}
 		if ($endDate) {
 			$queryString .= "and time <= :endDate ";
@@ -214,7 +214,7 @@ class LedgerManager {
 		$queryString = "
 			select sum(amount) amount, description
 			from {$this->table}
-			where time >= :startDate
+			where time > :startDate
 		";
 		if ($endDate) {
 			$queryString .= "and time <= :endDate ";
