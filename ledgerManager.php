@@ -348,9 +348,6 @@ class LedgerManager {
 	{
 		$transactionObjects = [];
 		$transactions = $this->retrieveGroupedSumsOfTransactions($startDate, $endDate);
-		if (empty($transactions)) {
-			return [];
-		}
 		$debitSum = $this->getDebitSumForWindow($startDate, $endDate);
 		$creditSum = $this->getCreditSumForWindow($startDate, $endDate);
 		foreach ($transactions as $t) {

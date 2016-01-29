@@ -116,7 +116,9 @@ function setupSummary($thisScript, $duration, $ledgerManager) {
 		$earlyDate = date('Y-m-d', strtotime("-". $earlyIndex. " days"));
 
 		$transactionsGroup = $ledgerManager->retrieveGroupedSumsOfTransactionsAsObjects($earlyDate, $laterDate);
-		$transactionGroups[] = $transactionsGroup;
+		if (!empty($transactionsGroup->transactions)) {
+			$transactionGroups[] = $transactionsGroup;
+		}
 
 		$laterIndex = $earlyIndex;
 		$earlyIndex += $duration;
