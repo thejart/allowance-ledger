@@ -360,8 +360,8 @@ class LedgerManager {
 		$transactionGroup = new stdClass();
 		$transactionGroup->startDate = $startDate;
 		$transactionGroup->endDate = $endDate;
-		$transactionGroup->debitSum = $debitSum;
-		$transactionGroup->creditSum = $creditSum;
+		$transactionGroup->debitSum = sprintf('%01.2f', $debitSum);
+		$transactionGroup->creditSum = sprintf('%01.2f', $creditSum);
 		$transactionGroup->transactions = $transactionObjects;
 		return $transactionGroup;
 	}
