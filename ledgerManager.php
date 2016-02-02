@@ -357,6 +357,9 @@ class LedgerManager {
 			$transaction->percent = sprintf('%01.1f', 100*$t['amount']/$debitSum);
 			$transactionObjects[] = $transaction;
 		}
+		if (!$endDate) {
+			$endDate = date('Y-m-d', strtotime("now"));
+		}
 		$transactionGroup = new stdClass();
 		$transactionGroup->startDate = $startDate;
 		$transactionGroup->endDate = $endDate;
