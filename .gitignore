@@ -1,3 +1,4 @@
 env.setup
 *.swp
 templateManager/*
+bootstrap/*
