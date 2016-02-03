@@ -48,7 +48,7 @@ if (isset($verb)) {
 		$template->transactionGroups = $transactionGroups;
 		$template->budgetLiClass = '';
 		$template->summaryLiClass = 'class="active"';
-		$template->setFile('templates/bs-summary.phtml')
+		$template->setFile('templates/bs-table-summary.phtml')
 			->setLayout('templates/@bs-layout.phtml')
 			->render();
 	}
