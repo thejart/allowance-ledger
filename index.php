@@ -48,8 +48,8 @@ if (isset($verb)) {
 		$template->transactionGroups = $transactionGroups;
 		$template->budgetLiClass = '';
 		$template->summaryLiClass = 'class="active"';
-		$template->setFile('bs-summary.phtml')
-			->setLayout('@bs-layout.phtml')
+		$template->setFile('templates/bs-summary.phtml')
+			->setLayout('templates/@bs-layout.phtml')
 			->render();
 	}
 	elseif ($verb == 'transactions') {
@@ -62,8 +62,8 @@ if (isset($verb)) {
 		$template->unclearedTransactions = $ledgerManager->getAllUnclearedTransactionsOutsideCurrentWindowAsObjects($windowStartDate);
 		$template->budgetLiClass = 'class="active"';
 		$template->summaryLiClass = '';
-		$template->setFile('bs-transactions.phtml')
-			->setLayout('@bs-layout.phtml')
+		$template->setFile('templates/bs-table-transactions.phtml')
+			->setLayout('templates/@bs-layout.phtml')
 			->render();
 	}
 	else {
