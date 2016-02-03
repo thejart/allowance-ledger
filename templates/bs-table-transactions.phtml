@@ -24,6 +24,8 @@
 		{$context = 'class="danger"'}
 	{elseif !$t->cleared && !$t->credit}
 		{$context = 'class="info"'}
+	{elseif $t->credit}
+		{$context = 'class="success"'}
 	{else}
 		{$context = ''}
 	{/if}
