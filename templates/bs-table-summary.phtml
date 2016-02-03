@@ -26,11 +26,11 @@
 			{$bgcolor = ''}
 		{/if}
 <tr>
-	<td>{$t->description}</td>
+	<td class="col-xs-6">{$t->description}</td>
 
-	<td><em>{$t->percent}%</em></td>
+	<td class="col-xs-2"><em>{$t->percent}%</em></td>
 
-	<td class="text-right">
+	<td class="col-xs-4 text-right">
 	{if !$t->description}
 		<b>${$t->amount}</b>
 	{else}
@@ -40,8 +40,9 @@
 </tr>
 		{$i++}
 	{/foreach}
-<tr>
-	<td colspan=2>&nbsp;</td>
+<tr class="info">
+	<td><i>Total Debits</i></td>
+	<td>&nbsp;</td>
 	<td class="text-right"><b>${$debitSum}</b></td>
 </tr>
 </table>
