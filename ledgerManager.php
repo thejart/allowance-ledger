@@ -74,6 +74,10 @@ class LedgerManager {
 		return $query->execute([':transactionId' => $transactionId]);
 	}
 
+	/**
+	 * @param int $transactionId
+	 * @return mixed[]
+	 */
 	public function retrieveTransaction($transactionId)
 	{
 		$query = $this->pdo->prepare("
