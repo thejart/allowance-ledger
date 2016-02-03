@@ -46,8 +46,10 @@ if (isset($verb)) {
 		$template->daysLeft = $ledgerManager->numberOfDaysLeftInPayPeriod();
 		$template->header = $header;
 		$template->transactionGroups = $transactionGroups;
-		$template->setFile('summary.phtml')
-			->setLayout('@layout.phtml')
+		$template->budgetLiClass = '';
+		$template->summaryLiClass = 'class="active"';
+		$template->setFile('templates/bs-table-summary.phtml')
+			->setLayout('templates/@bs-layout.phtml')
 			->render();
 	}
 	elseif ($verb == 'transactions') {
@@ -58,8 +60,34 @@ if (isset($verb)) {
 		$template->unclearedAmount = sprintf('%01.2f', $ledgerManager->getUnclearedAmount());
 		$template->transactions = $ledgerManager->retrieveARangeOfTransactionsAsObjects($windowStartDate);
 		$template->unclearedTransactions = $ledgerManager->getAllUnclearedTransactionsOutsideCurrentWindowAsObjects($windowStartDate);
-		$template->setFile('transactions.phtml')
-			->setLayout('@layout.phtml')
+		$template->budgetLiClass = 'class="active"';
+		$template->summaryLiClass = '';
+		$template->setFile('templates/bs-table-transactions.phtml')
+			->setLayout('templates/@bs-layout.phtml')
+			->render();
+	}
+	elseif ($verb == 'updateModal') {
+		$transaction = $ledgerManager->retrieveTransaction($id);
+		$template = new Template();
+		$template->thisScript = $thisScript;
+		$template->id = $transaction['id'];
+		$template->description = $transaction['description'];
+		$template->amount = $transaction['amount'];
+		$template->cleared = $transaction['cleared'];
+		$template->setFile('templates/update-modal.phtml')
+			->setLayout('templates/@null-layout.phtml')
+			->render();
+	}
+	elseif ($verb == 'deleteModal') {
+		$transaction = $ledgerManager->retrieveTransaction($id);
+		$template = new Template();
+		$template->thisScript = $thisScript;
+		$template->id = $transaction['id'];
+		$template->description = $transaction['description'];
+		$template->amount = $transaction['amount'];
+		$template->time = $transaction['time'];
+		$template->setFile('templates/delete-modal.phtml')
+			->setLayout('templates/@null-layout.phtml')
 			->render();
 	}
 	else {

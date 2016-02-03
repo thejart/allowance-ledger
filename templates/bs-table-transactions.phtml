@@ -1,0 +1,101 @@
+{if $unclearedAmount}
+<div class="row">
+	<div class="col-xs-6 pull-right text-right">
+		<strong><em>${$unclearedAmount} uncleared</em></strong>
+	</div>
+</div>
+{/if}
+
+<table class="table table-striped">
+<thead>
+<tr>
+	<th colspan=2>
+	&nbsp;
+	</th>
+	<th><i>amount</i></th>
+	<th class="text-right"><i>balance</i></ht>
+</tr>
+</thead>
+
+{if $transactions}
+{foreach $transactions as $index => $t}
+	{$balance = sprintf('%01.2f',$t->balance)}
+	{if $t->balance <= 0}
+		{$context = 'class="danger"'}
+	{elseif !$t->cleared && !$t->credit}
+		{$context = 'class="info"'}
+	{else}
+		{$context = ''}
+	{/if}
+<tbody>
+<tr {$context}>
+	<td>
+		<a href="{$thisScript}?verb=deleteModal&id={$t->id}" data-toggle="modal" data-target="#deleteModal"><span class='glyphicon glyphicon-trash'></span></a>
+	</td>
+
+	<td>
+		{$t->description} ({$t->tshort})
+	</td>
+
+	<td>
+	{if $t->credit}
+		${$t->amount}
+	{elseif $t->cleared}
+		(${$t->amount})
+	{else}
+		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-toggle="modal" data-target="#updateModal">(${$t->amount})</a>
+	{/if}
+	</td>
+
+	<td class="text-right">
+	{if !$index}
+		<b>${$balance}</b>
+	{else}
+		${$balance}
+	{/if}
+	</td>
+</tr>
+{/foreach}
+{/if}
+
+{if $unclearedTransactions}
+{foreach $unclearedTransactions as $index => $t}
+<tr class="info">
+	<td>
+		<a href="{$thisScript}?verb=deleteModal&id={$t->id}" data-toggle="modal" data-target="#deleteModal"><span class='glyphicon glyphicon-trash'></span></a>
+	</td>
+
+	<td>{$t->description} ({$t->tshort})</td>
+
+	<td>
+		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-toggle="modal" data-target="#updateModal">(${$t->amount})</a>
+	</td>
+
+	<td class="text-right">OLD</td>
+</tr>
+{/foreach}
+{/if}
+</tbody>
+</table>
+
+<div id="updateModal" class="modal" role="dialog" tabindex=-1>
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+		<!-- this will be replaced -->
+    </div>
+  </div>
+</div>
+
+<div id="deleteModal" class="modal" role="dialog" tabindex=-1>
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+		<!-- this will be replaced -->
+    </div>
+  </div>
+</div>
+
+<script type='text/javascript'>
+$('body').on('hidden.bs.modal', '.modal', function () {
+	$(this).removeData('bs.modal');
+});
+</script>
