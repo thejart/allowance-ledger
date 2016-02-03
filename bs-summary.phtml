@@ -1,0 +1,41 @@
+<div class="row text-center">
+	{$header}
+</div>
+
+{foreach $transactionGroups as $transactionGroup}
+	{$from = $transactionGroup->startDate}
+	{$to = $transactionGroup->endDate}
+	{$debitSum = $transactionGroup->debitSum}
+	{$creditSum = $transactionGroup->creditSum}
+
+<div class="row">
+	<div class="col-xs-4">
+		<em>{$from} to {$to}</em>
+		<b>${$creditSum}</b>
+	</div>
+</div>
+
+	{$i = 1}
+	{foreach $transactionGroup->transactions as $t}
+		{if $i%2}
+			{$bgcolor = 'bg-info'}
+		{else}
+			{$bgcolor = ''}
+		{/if}
+<div class="row {$bgcolor}">
+	<div class="col-xs-4">{$t->description}</div>
+
+	<div class="col-xs-4"><em>{$t->percent}%</em></div>
+		{if !$t->description}
+	<div class="col-xs-4"><b>${$t->amount}</b></div>
+		{else}
+	<div class="col-xs-4 text-right">${$t->amount}</div>
+		{/if}
+</div>
+		{$i++}
+	{/foreach}
+<div class="row">
+	<div class="col-xs-4 pull-right text-right">${$debitSum}</div>
+</div>
+
+{/foreach}
