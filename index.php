@@ -46,8 +46,10 @@ if (isset($verb)) {
 		$template->daysLeft = $ledgerManager->numberOfDaysLeftInPayPeriod();
 		$template->header = $header;
 		$template->transactionGroups = $transactionGroups;
-		$template->setFile('summary.phtml')
-			->setLayout('@layout.phtml')
+		$template->budgetLiClass = '';
+		$template->summaryLiClass = 'class="active"';
+		$template->setFile('bs-summary.phtml')
+			->setLayout('@bs-layout.phtml')
 			->render();
 	}
 	elseif ($verb == 'transactions') {
@@ -58,8 +60,10 @@ if (isset($verb)) {
 		$template->unclearedAmount = sprintf('%01.2f', $ledgerManager->getUnclearedAmount());
 		$template->transactions = $ledgerManager->retrieveARangeOfTransactionsAsObjects($windowStartDate);
 		$template->unclearedTransactions = $ledgerManager->getAllUnclearedTransactionsOutsideCurrentWindowAsObjects($windowStartDate);
-		$template->setFile('transactions.phtml')
-			->setLayout('@layout.phtml')
+		$template->budgetLiClass = 'class="active"';
+		$template->summaryLiClass = '';
+		$template->setFile('bs-transactions.phtml')
+			->setLayout('@bs-layout.phtml')
 			->render();
 	}
 	else {
