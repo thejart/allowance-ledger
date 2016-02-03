@@ -74,6 +74,16 @@ class LedgerManager {
 		return $query->execute([':transactionId' => $transactionId]);
 	}
 
+	public function retrieveTransaction($transactionId)
+	{
+		$query = $this->pdo->prepare("
+			select id, description, amount, cleared, time from {$this->table}
+			where id = :transactionId
+		");
+		$query->execute([':transactionId' => $transactionId]);
+		return $query->fetch(PDO::FETCH_ASSOC);
+	}
+
 	/**
 	 * This method returns the sum of all credit or debit transactions
 	 * for date range.

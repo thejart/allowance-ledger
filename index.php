@@ -66,6 +66,30 @@ if (isset($verb)) {
 			->setLayout('templates/@bs-layout.phtml')
 			->render();
 	}
+	elseif ($verb == 'updateModal') {
+		$transaction = $ledgerManager->retrieveTransaction($id);
+		$template = new Template();
+		$template->thisScript = $thisScript;
+		$template->id = $transaction['id'];
+		$template->description = $transaction['description'];
+		$template->amount = $transaction['amount'];
+		$template->cleared = $transaction['cleared'];
+		$template->setFile('templates/update-modal.phtml')
+			->setLayout('templates/@null-layout.phtml')
+			->render();
+	}
+	elseif ($verb == 'deleteModal') {
+		$transaction = $ledgerManager->retrieveTransaction($id);
+		$template = new Template();
+		$template->thisScript = $thisScript;
+		$template->id = $transaction['id'];
+		$template->description = $transaction['description'];
+		$template->amount = $transaction['amount'];
+		$template->time = $transaction['time'];
+		$template->setFile('templates/delete-modal.phtml')
+			->setLayout('templates/@null-layout.phtml')
+			->render();
+	}
 	else {
 		echo '(nope)';
 	}
