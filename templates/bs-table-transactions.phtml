@@ -16,6 +16,7 @@
 	<th class="text-right"><i>balance</i></ht>
 </tr>
 </thead>
+<tbody>
 
 {if $transactions}
 {foreach $transactions as $index => $t}
@@ -29,7 +30,6 @@
 	{else}
 		{$context = ''}
 	{/if}
-<tbody>
 <tr {$context}>
 	<td>
 		<a href="{$thisScript}?verb=deleteModal&id={$t->id}" data-toggle="modal" data-target="#deleteModal"><span class='glyphicon glyphicon-trash'></span></a>
