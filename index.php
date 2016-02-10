@@ -44,7 +44,7 @@ if (isset($verb)) {
 		$template->daysLeft = $ledgerManager->numberOfDaysLeftInPayPeriod();
 		$template->unclearedAmount = sprintf('%01.2f', $ledgerManager->getUnclearedAmount());
 		$template->transactions = $ledgerManager->retrieveARangeOfTransactionsAsObjects($windowStartDate);
-		$template->unclearedTransactions = $ledgerManager->getAllUnclearedTransactionsOutsideCurrentWindowAsObjects($windowStartDate);
+		$template->unclearedTransactions = $ledgerManager->getAllUnclearedTransactionsBeforeCutoffDateAsObjects($windowStartDate);
 		$template->budgetLiClass = 'class="active"';
 		$template->summaryLiClass = '';
 		$template->nextWindowEnd = $windowStartDate;
@@ -61,7 +61,7 @@ if (isset($verb)) {
 		$template->windowEndDate = $windowEndDate;
 		$template->windowStartDate = $windowStartDate;
 		$template->transactions = $ledgerManager->retrieveARangeOfTransactionsAsObjects($windowStartDate, $windowEndDate);
-		$template->unclearedTransactions = $ledgerManager->getAllUnclearedTransactionsOutsideCurrentWindowAsObjects($windowStartDate);
+		$template->unclearedTransactions = $ledgerManager->getAllUnclearedTransactionsBeforeCutoffDateAsObjects($windowStartDate);
 		$template->nextWindowEnd = $windowStartDate;
 		$template->setFile('templates/more-transactions.phtml')
 			->setLayout('templates/@null-layout.phtml')

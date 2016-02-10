@@ -200,7 +200,7 @@ class LedgerManager {
 	 * @param string $cutOffDate
 	 * @return mixed[]
 	 */
-	public function getAllUnclearedTransactionsOutsideCurrentWindow($cutOffDate)
+	public function getAllUnclearedTransactionsBeforeCutOffDate($cutOffDate)
 	{
 		$query = $this->pdo->prepare("
 			select id, credit, description, amount, time, cleared
@@ -299,6 +299,24 @@ class LedgerManager {
 	}
 
 	/**
+	 * @param mixed[] $t
+	 * @return stdClass
+	 */
+	protected function convertTransactionRowToObject($t)
+	{
+		$transaction = new stdClass();
+		$transaction->id = $t['id'];
+		$transaction->credit = $t['credit'];
+		$transaction->description = $t['description'];
+		$transaction->amount = $t['amount'];
+		$transaction->time = $t['time'];
+		$transaction->cleared = $t['cleared'];
+		$transaction->balance = $t['balance'];
+		$transaction->tshort = date('n/j', strtotime($t['time']));
+		return $transaction;
+	}
+
+	/**
 	 * This calls retrieveARangeOfTransactions() and
 	 * converts the associative array response to a standard class
 	 *
@@ -311,41 +329,24 @@ class LedgerManager {
 		$transactionObjects = [];
 		$transactions = $this->retrieveARangeOfTransactions($windowStartDate, $endDate);
 		foreach ($transactions as $t) {
-			$transaction = new stdClass();
-			$transaction->id = $t['id'];
-			$transaction->credit = $t['credit'];
-			$transaction->description = $t['description'];
-			$transaction->amount = $t['amount'];
-			$transaction->time = $t['time'];
-			$transaction->cleared = $t['cleared'];
-			$transaction->balance = $t['balance'];
-			$transaction->tshort = preg_replace('/\d{4}-(\d{2})-(\d{2}).*/', '$1/$2', $t['time']);
-			$transactionObjects[] = $transaction;
+			$transactionObjects[] = $this->convertTransactionRowToObject($t);
 		}
 		return $transactionObjects;
 	}
 
 	/**
-	 * This calls getAllUnclearedTransactionsOutsideCurrentWindow() and
+	 * This calls getAllUnclearedTransactionsBeforeCutOffDate() and
 	 * converts the associative array response to a standard class
 	 *
 	 * @param string $cutOffDate
 	 * @return stdClass[]
 	 */
-	public function getAllUnclearedTransactionsOutsideCurrentWindowAsObjects($cutOffDate)
+	public function getAllUnclearedTransactionsBeforeCutOffDateAsObjects($cutOffDate)
 	{
 		$transactionObjects = [];
-		$transactions = $this->getAllUnclearedTransactionsOutsideCurrentWindow($cutOffDate);
+		$transactions = $this->getAllUnclearedTransactionsBeforeCutOffDate($cutOffDate);
 		foreach ($transactions as $t) {
-			$transaction = new stdClass();
-			$transaction->id = $t['id'];
-			$transaction->credit = $t['credit'];
-			$transaction->description = $t['description'];
-			$transaction->amount = $t['amount'];
-			$transaction->time = $t['time'];
-			$transaction->cleared = $t['cleared'];
-			$transaction->tshort = preg_replace('/\d{4}-(\d{2})-(\d{2}).*/', '$1/$2', $t['time']);
-			$transactionObjects[] = $transaction;
+			$transactionObjects[] = $this->convertTransactionRowToObject($t);
 		}
 		return $transactionObjects;
 	}
