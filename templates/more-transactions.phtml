@@ -1,22 +1,10 @@
-{if $unclearedAmount > 0}
 <div class="row">
-	<div class="col-xs-6 pull-right text-right">
-		<strong><em>${$unclearedAmount} uncleared</em></strong>
-	</div>
+	start: {$windowStartDate}
 </div>
-{/if}
-
+<div class="row">
+	end: {$windowEndDate}
+</div>
 <table class="table table-striped">
-<thead>
-<tr>
-	<th colspan=2>
-	&nbsp;
-	</th>
-	<th><i>amount</i></th>
-	<th class="text-right"><i>balance</i></ht>
-</tr>
-</thead>
-<tbody>
 
 {if $transactions}
 {foreach $transactions as $index => $t}
@@ -80,29 +68,4 @@
 <tr>
 	<td colspan=3><a href='{$thisScript}?verb=moreTransactions&windowEndDate={$nextWindowEnd}' data-target='#moreTransactions'>Load more transactions</a>
 </tr>
-</tbody>
 </table>
-
-<div id='moreTransactions'></div>
-
-<div id="updateModal" class="modal" role="dialog" tabindex=-1>
-  <div class="modal-dialog modal-sm">
-    <div class="modal-content">
-		<!-- this will be replaced -->
-    </div>
-  </div>
-</div>
-
-<div id="deleteModal" class="modal" role="dialog" tabindex=-1>
-  <div class="modal-dialog modal-sm">
-    <div class="modal-content">
-		<!-- this will be replaced -->
-    </div>
-  </div>
-</div>
-
-<script type='text/javascript'>
-$('body').on('hidden.bs.modal', '.modal', function () {
-	$(this).removeData('bs.modal');
-});
-</script>
