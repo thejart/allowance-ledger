@@ -375,8 +375,8 @@ class LedgerManager {
 			$endDate = date('Y-m-d', strtotime("now"));
 		}
 		$transactionGroup = new stdClass();
-		$transactionGroup->startDate = $startDate;
-		$transactionGroup->endDate = $endDate;
+		$transactionGroup->startDate = date('M j, Y', strtotime($startDate));
+		$transactionGroup->endDate = date('M j, Y', strtotime($endDate));
 		$transactionGroup->debitSum = sprintf('%01.2f', $debitSum);
 		$transactionGroup->creditSum = sprintf('%01.2f', $creditSum);
 		$transactionGroup->transactions = $transactionObjects;

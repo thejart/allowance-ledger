@@ -54,17 +54,19 @@
       <div class="modal-body">
         <form class="form" role="form" id="modalForm" action="{$thisScript}" method="POST">
             <input type="hidden" name="verb" value="create">
-			<label class="radio-inline"><input type="radio" name="credit" checked value=0>Debit</label>
-			<label class="radio-inline"><input type="radio" name="credit" value=1>Credit</label>
+			<div class="form-group">
+				<label class="radio-inline"><input type="radio" name="credit" checked value=0>Debit</label>
+				<label class="radio-inline"><input type="radio" name="credit" value=1>Credit</label>
+			</div>
             <div class="form-group">
                 <label for="description">description</label>
-                <input type="text" class="form-control" name="description">
+                <input type="text" class="form-control" name="description" placeholder="description">
             </div>
             <div class="form-group">
                 <label for="amount">amount</label>
-                <input type="text" class="form-control" name="amount">
+                <input type="text" class="form-control" name="amount" placeholder="amount">
             </div>
-            <input type="submit" class="form-control" value="OK">
+            <input type="submit" class="form-control btn-primary" value="OK">
         </form>
       </div>
       <div class="modal-footer">

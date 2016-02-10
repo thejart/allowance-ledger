@@ -8,20 +8,26 @@
 		<input type="hidden" name="id" value="{$id}">
 		<div class="form-group">
 			<label for="description">description</label>
-			<input type="text" class="form-control" name="description" value="{$description}">
+			<input type="text" class="form-control" name="description" placeholder="description" value="{$description}">
 		</div>
 		<div class="form-group">
 			<label for="amount">amount</label>
-			<input type="text" class="form-control" name="amount" value="{$amount}">
+			<input type="text" class="form-control" name="amount" placeholder="amount" value="{$amount}">
 		</div>
-		<div class="checkbox">
+		<div class="form-group">
+			<label for="amount">timestamp</label>
+			<input type="text" class="form-control" value="{$time}" readonly>
+		</div>
+		<div class="form-group">
+			<label for="cleared" class="checkbox-inline">
 			{if $cleared}
-			<label for="cleared"><input name="cleared" type="checkbox" value="1" checked>Cleared?</label>
+				<input name="cleared" type="checkbox" value="1" checked>Cleared?
 			{else}
-			<label for="cleared"><input name="cleared" type="checkbox" value="1">Cleared?</label>
+				<input name="cleared" type="checkbox" value="1">Cleared?
 			{/if}
+			</label>
 		</div>
-		<input type="submit" class="form-control" value="OK">
+		<input type="submit" class="form-control btn-primary" value="OK">
 	</form>
 </div>
 <div class="modal-footer">

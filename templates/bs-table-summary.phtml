@@ -9,8 +9,8 @@
 	{$creditSum = $transactionGroup->creditSum}
 
 <div class="row">
-	<div class="col-xs-8">
-		<em>{$from} to {$to}</em>
+	<div class="col-xs-8 text-info">
+		<big>{$from} - {$to}</big>
 	</div>
 	<div class="col-xs-4 pull-right text-right">
 		<b>${$creditSum}</b>
@@ -48,4 +48,3 @@
 </table>
 
 {/foreach}
-

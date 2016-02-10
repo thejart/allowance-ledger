@@ -74,6 +74,7 @@ if (isset($verb)) {
 		$template->description = $transaction['description'];
 		$template->amount = $transaction['amount'];
 		$template->cleared = $transaction['cleared'];
+		$template->time = date('M j, g:i:s A', strtotime($transaction['time']));
 		$template->setFile('templates/update-modal.phtml')
 			->setLayout('templates/@null-layout.phtml')
 			->render();
@@ -85,7 +86,7 @@ if (isset($verb)) {
 		$template->id = $transaction['id'];
 		$template->description = $transaction['description'];
 		$template->amount = $transaction['amount'];
-		$template->time = $transaction['time'];
+		$template->time = date('M j, g:i:s A', strtotime($transaction['time']));
 		$template->setFile('templates/delete-modal.phtml')
 			->setLayout('templates/@null-layout.phtml')
 			->render();
