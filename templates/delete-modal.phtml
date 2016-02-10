@@ -3,13 +3,23 @@
 	<h4 class="modal-title">Delete Transaction</h4>
 </div>
 <div class="modal-body">
-	<p>Are you sure you want to delete this transaction?</p>
-	<p><b>"{$description}" for ${$amount}</b></p>
-	<p>{$time}</p>
+	<p class="alert alert-danger">Are you sure you want to delete this transaction?</p>
 	<form class="form" role="form" id="modalForm" action="{$thisScript}" method="POST">
 		<input type="hidden" name="verb" value="delete">
 		<input type="hidden" name="id" value="{$id}">
-		<input type="submit" class="form-control" value="OK">
+		<div class="form-group">
+			<label for="description">description</label>
+			<input type="text" class="form-control" value="{$description}" readonly>
+		</div>
+		<div class="form-group">
+			<label for="amount">amount</label>
+			<input type="text" class="form-control" value="{$amount}" readonly>
+		</div>
+		<div class="form-group">
+			<label for="time">timestamp</label>
+			<input type="text" class="form-control" value="{$time}" readonly>
+		</div>
+		<input type="submit" class="form-control btn-primary" value="OK">
 	</form>
 </div>
 <div class="modal-footer">
