@@ -37,21 +37,6 @@ if (isset($verb)) {
 		error_log('deleted transaction: '. $id);
 		redirectTo("{$host}/{$path}{$thisScript}");
 	}
-	elseif ($verb == 'summary') {
-		list($header, $transactionGroups) = setupSummary($thisScript, $duration, $ledgerManager);
-		//echo json_encode($transactionGroups). "<br>";
-		$template = new Template();
-		$template->thisScript = $thisScript;
-		$template->totalBalance = $ledgerManager->getBalance();
-		$template->daysLeft = $ledgerManager->numberOfDaysLeftInPayPeriod();
-		$template->header = $header;
-		$template->transactionGroups = $transactionGroups;
-		$template->budgetLiClass = '';
-		$template->summaryLiClass = 'class="active"';
-		$template->setFile('templates/bs-table-summary.phtml')
-			->setLayout('templates/@bs-layout.phtml')
-			->render();
-	}
 	elseif ($verb == 'transactions') {
 		$template = new Template();
 		$template->thisScript = $thisScript;
@@ -63,6 +48,20 @@ if (isset($verb)) {
 		$template->budgetLiClass = 'class="active"';
 		$template->summaryLiClass = '';
 		$template->setFile('templates/bs-table-transactions.phtml')
+			->setLayout('templates/@bs-layout.phtml')
+			->render();
+	}
+	elseif ($verb == 'summary') {
+		list($header, $transactionGroups) = setupSummary($thisScript, $duration, $ledgerManager);
+		$template = new Template();
+		$template->thisScript = $thisScript;
+		$template->totalBalance = $ledgerManager->getBalance();
+		$template->daysLeft = $ledgerManager->numberOfDaysLeftInPayPeriod();
+		$template->header = $header;
+		$template->transactionGroups = $transactionGroups;
+		$template->budgetLiClass = '';
+		$template->summaryLiClass = 'class="active"';
+		$template->setFile('templates/bs-table-summary.phtml')
 			->setLayout('templates/@bs-layout.phtml')
 			->render();
 	}
