@@ -47,8 +47,24 @@ if (isset($verb)) {
 		$template->unclearedTransactions = $ledgerManager->getAllUnclearedTransactionsOutsideCurrentWindowAsObjects($windowStartDate);
 		$template->budgetLiClass = 'class="active"';
 		$template->summaryLiClass = '';
+		$template->nextWindowEnd = $windowStartDate;
 		$template->setFile('templates/bs-table-transactions.phtml')
 			->setLayout('templates/@bs-layout.phtml')
+			->render();
+	}
+	elseif ($verb == 'moreTransactions') {
+		$windowEndDate = date('Y-m-d', strtotime(getRequestParam('windowEndDate')));
+		$unixEndDate = strtotime($windowEndDate);
+		$windowStartDate = date('Y-m-d', strtotime("-". $duration. " days", $unixEndDate));
+		$template = new Template();
+		$template->thisScript = $thisScript;
+		$template->windowEndDate = $windowEndDate;
+		$template->windowStartDate = $windowStartDate;
+		$template->transactions = $ledgerManager->retrieveARangeOfTransactionsAsObjects($windowStartDate, $windowEndDate);
+		$template->unclearedTransactions = $ledgerManager->getAllUnclearedTransactionsOutsideCurrentWindowAsObjects($windowStartDate);
+		$template->nextWindowEnd = $windowStartDate;
+		$template->setFile('templates/more-transactions.phtml')
+			->setLayout('templates/@null-layout.phtml')
 			->render();
 	}
 	elseif ($verb == 'summary') {
