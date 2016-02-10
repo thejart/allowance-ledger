@@ -1,8 +1,8 @@
 <?php
 $startTime = microtime(true);
-include 'ledgerManager.php';
+require 'ledgerManager.php';
 // Credit to https://github.com/adamtomecek/Template
-include 'templateManager/Template.php';
+require 'templateManager/Template.php';
 
 $pathArray = pathinfo(__FILE__);
 $path = preg_replace('/\/var\/www\//', '', $pathArray['dirname']). "/";
