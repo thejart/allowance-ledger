@@ -12,7 +12,7 @@ list($user, $password, $database, $table) = setupEnvironment();
 $ledgerManager = new LedgerManager($user, $password, $database, $table);
 
 $verb = getRequestParam('verb', 'transactions');
-$id = getRequestParam('id');
+$id = (int)getRequestParam('id');
 $description = getRequestParam('description');
 $amount = getRequestParam('amount');
 $credit = getRequestParam('credit');

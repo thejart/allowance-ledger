@@ -81,11 +81,12 @@ class LedgerManager {
 	public function retrieveTransaction($transactionId)
 	{
 		$query = $this->pdo->prepare("
-			select id, description, amount, cleared, time from {$this->table}
+			select id, credit, description, amount, time, cleared
+			from {$this->table}
 			where id = :transactionId
 		");
 		$query->execute([':transactionId' => $transactionId]);
-		return $this->convertTransactionRowsToObjects($query->fetch(PDO::FETCH_ASSOC));
+		return $this->convertTransactionRowsToObjects($query->fetch(PDO::FETCH_ASSOC))[0];
 	}
 
 	/**
@@ -304,6 +305,10 @@ class LedgerManager {
 	 */
 	protected function convertTransactionRowsToObjects($transactionRows)
 	{
+		// If only one row was returned we need to convert this to a 2D array
+		if (isset($transactionRows['id'])) {
+			$transactionRows = [ $transactionRows ];
+		}
 		$transactions = [];
 		foreach ($transactionRows as $t) {
 			$transaction = new stdClass();
@@ -438,6 +443,6 @@ class LedgerManager {
 	 */
 	public function validateDelete($id)
 	{
-		return $id;
+		return is_integer($id);
 	}
 }
