@@ -85,7 +85,7 @@ class LedgerManager {
 			where id = :transactionId
 		");
 		$query->execute([':transactionId' => $transactionId]);
-		return $this->convertTransactionRowToObject($query->fetch(PDO::FETCH_ASSOC));
+		return $this->convertTransactionRowsToObjects($query->fetch(PDO::FETCH_ASSOC));
 	}
 
 	/**
@@ -211,7 +211,7 @@ class LedgerManager {
 			order by time desc
 		");
 		$query->execute([":cutOffDate" => $cutOffDate]);
-		return $this->convertTransactionRowToObject($query->fetchAll(PDO::FETCH_ASSOC));
+		return $this->convertTransactionRowsToObjects($query->fetchAll(PDO::FETCH_ASSOC));
 	}
 
 	/**
@@ -299,13 +299,13 @@ class LedgerManager {
 	}
 
 	/**
-	 * @param mixed[] $t
+	 * @param mixed[] $transactionRows
 	 * @return stdClass
 	 */
-	protected function convertTransactionRowToObject($ts)
+	protected function convertTransactionRowsToObjects($transactionRows)
 	{
 		$transactions = [];
-		foreach ($ts as $t) {
+		foreach ($transactionRows as $t) {
 			$transaction = new stdClass();
 			$transaction->id = $t['id'];
 			$transaction->credit = $t['credit'];
@@ -334,7 +334,7 @@ class LedgerManager {
 	{
 		$transactionObjects = [];
 		$transactions = $this->retrieveARangeOfTransactions($windowStartDate, $endDate);
-		return $this->convertTransactionRowToObject($transactions);
+		return $this->convertTransactionRowsToObjects($transactions);
 	}
 
 	/**
