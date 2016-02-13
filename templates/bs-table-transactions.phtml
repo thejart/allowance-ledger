@@ -62,7 +62,7 @@
 
 {if $unclearedTransactions}
 {foreach $unclearedTransactions as $index => $t}
-<tr class="info">
+<tr class="info uncleared">
 	<td>
 		<a href="{$thisScript}?verb=deleteModal&id={$t->id}" data-toggle="modal" data-target="#deleteModal"><span class='glyphicon glyphicon-trash'></span></a>
 	</td>
@@ -77,13 +77,11 @@
 </tr>
 {/foreach}
 {/if}
-<tr>
-	<td colspan=3><a href='{$thisScript}?verb=moreTransactions&windowEndDate={$nextWindowEnd}' data-target='#moreTransactions'>Load more transactions</a>
+<tr class='mutable'>
+	<td colspan=4><a href="#" id="moreTransactions" nextwindowend="{$nextWindowEnd}">Load more transactions</a>
 </tr>
 </tbody>
 </table>
-
-<div id='moreTransactions'></div>
 
 <div id="updateModal" class="modal" role="dialog" tabindex=-1>
   <div class="modal-dialog modal-sm">
@@ -102,7 +100,29 @@
 </div>
 
 <script type='text/javascript'>
+<!--
+function bindMoreTransactionsClick() {
+	$('#moreTransactions').click(function() {
+		var nextWindowEnd = $("#moreTransactions").attr("nextwindowend");
+		$('tr.uncleared').remove();
+		$('tr.mutable').remove();
+		$.ajax({
+			type: "POST",
+			url: "{$thisScript}",
+			data: {
+				verb: "moreTransactions",
+				windowEndDate: nextWindowEnd
+			},
+			success: function(data) {
+				$('tr:last').after(data);
+			}
+		});
+		return false;
+	});
+}
 $('body').on('hidden.bs.modal', '.modal', function () {
 	$(this).removeData('bs.modal');
 });
+bindMoreTransactionsClick();
+-->
 </script>
