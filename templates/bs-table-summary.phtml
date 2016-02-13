@@ -1,5 +1,13 @@
 <div class="row text-center">
-	{$header}
+	<ul class="list-inline">
+	{foreach $durationDescriptions as $durationString => $durationValue}
+		{if $durationValue == $duration}
+		<li>{$durationString}</li>
+		{else}
+		<li><a href="{$thisScript}?verb=summary&duration={$durationValue}">{$durationString}</a></li>
+		{/if}
+	{/foreach}
+	</ul>
 </div>
 
 {foreach $transactionGroups as $transactionGroup}

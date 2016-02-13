@@ -1,23 +1,3 @@
-{if $unclearedAmount > 0}
-<div class="row">
-	<div class="col-xs-6 pull-right text-right">
-		<strong><em>${$unclearedAmount} uncleared</em></strong>
-	</div>
-</div>
-{/if}
-
-<table class="table table-striped">
-<thead>
-<tr>
-	<th colspan=2>
-	&nbsp;
-	</th>
-	<th><i>amount</i></th>
-	<th class="text-right"><i>balance</i></ht>
-</tr>
-</thead>
-<tbody>
-
 {if $transactions}
 {foreach $transactions as $index => $t}
 	{$balance = sprintf('%01.2f',$t->balance)}
@@ -80,49 +60,8 @@
 <tr class='mutable'>
 	<td colspan=4><a href="#" id="moreTransactions" nextwindowend="{$nextWindowEnd}">Load more transactions</a>
 </tr>
-</tbody>
-</table>
-
-<div id="updateModal" class="modal" role="dialog" tabindex=-1>
-  <div class="modal-dialog modal-sm">
-    <div class="modal-content">
-		<!-- this will be replaced -->
-    </div>
-  </div>
-</div>
-
-<div id="deleteModal" class="modal" role="dialog" tabindex=-1>
-  <div class="modal-dialog modal-sm">
-    <div class="modal-content">
-		<!-- this will be replaced -->
-    </div>
-  </div>
-</div>
-
-<script type='text/javascript'>
+<script type="text/javascript">
 <!--
-function bindMoreTransactionsClick() {
-	$('#moreTransactions').click(function() {
-		var nextWindowEnd = $("#moreTransactions").attr("nextwindowend");
-		$('tr.uncleared').remove();
-		$('tr.mutable').remove();
-		$.ajax({
-			type: "POST",
-			url: "{$thisScript}",
-			data: {
-				verb: "moreTransactions",
-				windowEndDate: nextWindowEnd
-			},
-			success: function(data) {
-				$('tr:last').after(data);
-			}
-		});
-		return false;
-	});
-}
-$('body').on('hidden.bs.modal', '.modal', function () {
-	$(this).removeData('bs.modal');
-});
 bindMoreTransactionsClick();
 -->
 </script>

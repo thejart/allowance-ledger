@@ -1,8 +1,8 @@
 <?php
 $startTime = microtime(true);
-include 'ledgerManager.php';
+require 'ledgerManager.php';
 // Credit to https://github.com/adamtomecek/Template
-include 'templateManager/Template.php';
+require 'templateManager/Template.php';
 
 $pathArray = pathinfo(__FILE__);
 $path = preg_replace('/\/var\/www\//', '', $pathArray['dirname']). "/";
@@ -12,7 +12,7 @@ list($user, $password, $database, $table) = setupEnvironment();
 $ledgerManager = new LedgerManager($user, $password, $database, $table);
 
 $verb = getRequestParam('verb', 'transactions');
-$id = getRequestParam('id');
+$id = (int)getRequestParam('id');
 $description = getRequestParam('description');
 $amount = getRequestParam('amount');
 $credit = getRequestParam('credit');
@@ -37,14 +37,44 @@ if (isset($verb)) {
 		error_log('deleted transaction: '. $id);
 		redirectTo("{$host}/{$path}{$thisScript}");
 	}
-	elseif ($verb == 'summary') {
-		list($header, $transactionGroups) = setupSummary($thisScript, $duration, $ledgerManager);
-		//echo json_encode($transactionGroups). "<br>";
+	elseif ($verb == 'transactions') {
 		$template = new Template();
 		$template->thisScript = $thisScript;
 		$template->totalBalance = $ledgerManager->getBalance();
 		$template->daysLeft = $ledgerManager->numberOfDaysLeftInPayPeriod();
-		$template->header = $header;
+		$template->unclearedAmount = sprintf('%01.2f', $ledgerManager->getUnclearedAmount());
+		$template->transactions = $ledgerManager->retrieveARangeOfTransactions($windowStartDate);
+		$template->unclearedTransactions = $ledgerManager->getAllUnclearedTransactionsBeforeCutoffDate($windowStartDate);
+		$template->budgetLiClass = 'class="active"';
+		$template->summaryLiClass = '';
+		$template->nextWindowEnd = $windowStartDate;
+		$template->setFile('templates/bs-table-transactions.phtml')
+			->setLayout('templates/@bs-layout.phtml')
+			->render();
+	}
+	elseif ($verb == 'moreTransactions') {
+		$windowEndDate = date('Y-m-d', strtotime(getRequestParam('windowEndDate')));
+		$unixEndDate = strtotime($windowEndDate);
+		$windowStartDate = date('Y-m-d', strtotime("-". $duration. " days", $unixEndDate));
+		$template = new Template();
+		$template->thisScript = $thisScript;
+		$template->windowEndDate = $windowEndDate;
+		$template->windowStartDate = $windowStartDate;
+		$template->transactions = $ledgerManager->retrieveARangeOfTransactions($windowStartDate, $windowEndDate);
+		$template->unclearedTransactions = $ledgerManager->getAllUnclearedTransactionsBeforeCutoffDate($windowStartDate);
+		$template->nextWindowEnd = $windowStartDate;
+		$template->setFile('templates/more-transactions.phtml')
+			->setLayout('templates/@null-layout.phtml')
+			->render();
+	}
+	elseif ($verb == 'summary') {
+		list($durationDescriptions, $transactionGroups) = setupSummary($duration, $ledgerManager);
+		$template = new Template();
+		$template->thisScript = $thisScript;
+		$template->totalBalance = $ledgerManager->getBalance();
+		$template->daysLeft = $ledgerManager->numberOfDaysLeftInPayPeriod();
+		$template->duration = $duration;
+		$template->durationDescriptions = $durationDescriptions;
 		$template->transactionGroups = $transactionGroups;
 		$template->budgetLiClass = '';
 		$template->summaryLiClass = 'class="active"';
@@ -52,29 +82,15 @@ if (isset($verb)) {
 			->setLayout('templates/@bs-layout.phtml')
 			->render();
 	}
-	elseif ($verb == 'transactions') {
-		$template = new Template();
-		$template->thisScript = $thisScript;
-		$template->totalBalance = $ledgerManager->getBalance();
-		$template->daysLeft = $ledgerManager->numberOfDaysLeftInPayPeriod();
-		$template->unclearedAmount = sprintf('%01.2f', $ledgerManager->getUnclearedAmount());
-		$template->transactions = $ledgerManager->retrieveARangeOfTransactionsAsObjects($windowStartDate);
-		$template->unclearedTransactions = $ledgerManager->getAllUnclearedTransactionsOutsideCurrentWindowAsObjects($windowStartDate);
-		$template->budgetLiClass = 'class="active"';
-		$template->summaryLiClass = '';
-		$template->setFile('templates/bs-table-transactions.phtml')
-			->setLayout('templates/@bs-layout.phtml')
-			->render();
-	}
 	elseif ($verb == 'updateModal') {
 		$transaction = $ledgerManager->retrieveTransaction($id);
 		$template = new Template();
 		$template->thisScript = $thisScript;
-		$template->id = $transaction['id'];
-		$template->description = $transaction['description'];
-		$template->amount = $transaction['amount'];
-		$template->cleared = $transaction['cleared'];
-		$template->time = date('M j, g:i:s A', strtotime($transaction['time']));
+		$template->id = $transaction->id;
+		$template->description = $transaction->description;
+		$template->amount = $transaction->amount;
+		$template->cleared = $transaction->cleared;
+		$template->time = date('M j, Y g:i A', strtotime($transaction->time));
 		$template->setFile('templates/update-modal.phtml')
 			->setLayout('templates/@null-layout.phtml')
 			->render();
@@ -83,10 +99,10 @@ if (isset($verb)) {
 		$transaction = $ledgerManager->retrieveTransaction($id);
 		$template = new Template();
 		$template->thisScript = $thisScript;
-		$template->id = $transaction['id'];
-		$template->description = $transaction['description'];
-		$template->amount = $transaction['amount'];
-		$template->time = date('M j, g:i:s A', strtotime($transaction['time']));
+		$template->id = $transaction->id;
+		$template->description = $transaction->description;
+		$template->amount = $transaction->amount;
+		$template->time = date('M j, Y g:i A', strtotime($transaction->time));
 		$template->setFile('templates/delete-modal.phtml')
 			->setLayout('templates/@null-layout.phtml')
 			->render();
@@ -116,44 +132,14 @@ function redirectTo($URL) {
 	header( "Location: https://{$URL}");
 	exit(0); // This is Optional but suggested, to avoid any accidental output
 }
-function setupSummary($thisScript, $duration, $ledgerManager) {
-	$lnks = [
+function setupSummary($duration, $ledgerManager) {
+	$durationDescriptions = [
 		'Weekly' => 7,
 		'Bi-Weekly' => 15,
 		'Monthly' => 30,
 		'Quarterly' => 91,
 		'Bi-Annually' => 183
 	];
-	$header = "";
-	foreach ($lnks as $k=>$v) {
-		if ($v != 7) { $header .= "&nbsp;&nbsp;|&nbsp;&nbsp;"; }
-		if ($v == $duration) {
-			$header .= "$k";
-		} else {
-			$header .= "<a href='". $thisScript. "?verb=summary&duration=$v'>$k</a>";
-		}
-	}
-
-	$done = 0;
-	$maxCycles = 6;
-	$earlyIndex = $duration;
-	$laterIndex = null;
-	$transactionGroups = [];
-	while (!$done) {
-		$maxCycles--;
-		$laterDate = !$laterIndex ? $laterIndex : date('Y-m-d', strtotime("-". $laterIndex. " days"));
-		$earlyDate = date('Y-m-d', strtotime("-". $earlyIndex. " days"));
-
-		$transactionsGroup = $ledgerManager->retrieveGroupedSumsOfTransactionsAsObjects($earlyDate, $laterDate);
-		if (!empty($transactionsGroup->transactions)) {
-			$transactionGroups[] = $transactionsGroup;
-		}
-
-		$laterIndex = $earlyIndex;
-		$earlyIndex += $duration;
-		if (empty($transactionsGroup) || !$maxCycles) {
-			$done = 1;
-		}
-	}
-	return [$header, $transactionGroups];
+	$transactionGroups = $ledgerManager->retrieveChunksOfGroupedTransactions($duration);
+	return [$durationDescriptions, $transactionGroups];
 }

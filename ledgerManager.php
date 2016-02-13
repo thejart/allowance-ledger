@@ -81,11 +81,12 @@ class LedgerManager {
 	public function retrieveTransaction($transactionId)
 	{
 		$query = $this->pdo->prepare("
-			select id, description, amount, cleared, time from {$this->table}
+			select id, credit, description, amount, time, cleared
+			from {$this->table}
 			where id = :transactionId
 		");
 		$query->execute([':transactionId' => $transactionId]);
-		return $query->fetch(PDO::FETCH_ASSOC);
+		return $this->convertTransactionRowsToObjects($query->fetch(PDO::FETCH_ASSOC))[0];
 	}
 
 	/**
@@ -200,7 +201,7 @@ class LedgerManager {
 	 * @param string $cutOffDate
 	 * @return mixed[]
 	 */
-	public function getAllUnclearedTransactionsOutsideCurrentWindow($cutOffDate)
+	public function getAllUnclearedTransactionsBeforeCutoffDate($cutOffDate)
 	{
 		$query = $this->pdo->prepare("
 			select id, credit, description, amount, time, cleared
@@ -211,7 +212,7 @@ class LedgerManager {
 			order by time desc
 		");
 		$query->execute([":cutOffDate" => $cutOffDate]);
-		return $query->fetchAll(PDO::FETCH_ASSOC);
+		return $this->convertTransactionRowsToObjects($query->fetchAll(PDO::FETCH_ASSOC));
 	}
 
 	/**
@@ -295,22 +296,21 @@ class LedgerManager {
 				$runningBalance += $row['amount'];
 			}
 		}
-		return $allTransactions;
+		return $this->convertTransactionRowsToObjects($allTransactions);
 	}
 
 	/**
-	 * This calls retrieveARangeOfTransactions() and
-	 * converts the associative array response to a standard class
-	 *
-	 * @param string $windowStartDate
-	 * @param string|null $endDate
-	 * @return stdClass[]
+	 * @param mixed[] $transactionRows
+	 * @return stdClass
 	 */
-	public function retrieveARangeOfTransactionsAsObjects($windowStartDate, $endDate = null)
+	protected function convertTransactionRowsToObjects($transactionRows)
 	{
-		$transactionObjects = [];
-		$transactions = $this->retrieveARangeOfTransactions($windowStartDate, $endDate);
-		foreach ($transactions as $t) {
+		// If only one row was returned we need to convert this to a 2D array
+		if (isset($transactionRows['id'])) {
+			$transactionRows = [ $transactionRows ];
+		}
+		$transactions = [];
+		foreach ($transactionRows as $t) {
 			$transaction = new stdClass();
 			$transaction->id = $t['id'];
 			$transaction->credit = $t['credit'];
@@ -318,36 +318,13 @@ class LedgerManager {
 			$transaction->amount = $t['amount'];
 			$transaction->time = $t['time'];
 			$transaction->cleared = $t['cleared'];
-			$transaction->balance = $t['balance'];
-			$transaction->tshort = preg_replace('/\d{4}-(\d{2})-(\d{2}).*/', '$1/$2', $t['time']);
-			$transactionObjects[] = $transaction;
+			$transaction->tshort = date('n/j', strtotime($t['time']));
+			if (isset($t['balance'])) {
+				$transaction->balance = $t['balance'];
+			}
+			$transactions[] = $transaction;
 		}
-		return $transactionObjects;
-	}
-
-	/**
-	 * This calls getAllUnclearedTransactionsOutsideCurrentWindow() and
-	 * converts the associative array response to a standard class
-	 *
-	 * @param string $cutOffDate
-	 * @return stdClass[]
-	 */
-	public function getAllUnclearedTransactionsOutsideCurrentWindowAsObjects($cutOffDate)
-	{
-		$transactionObjects = [];
-		$transactions = $this->getAllUnclearedTransactionsOutsideCurrentWindow($cutOffDate);
-		foreach ($transactions as $t) {
-			$transaction = new stdClass();
-			$transaction->id = $t['id'];
-			$transaction->credit = $t['credit'];
-			$transaction->description = $t['description'];
-			$transaction->amount = $t['amount'];
-			$transaction->time = $t['time'];
-			$transaction->cleared = $t['cleared'];
-			$transaction->tshort = preg_replace('/\d{4}-(\d{2})-(\d{2}).*/', '$1/$2', $t['time']);
-			$transactionObjects[] = $transaction;
-		}
-		return $transactionObjects;
+		return $transactions;
 	}
 
 	/**
@@ -381,6 +358,38 @@ class LedgerManager {
 		$transactionGroup->creditSum = sprintf('%01.2f', $creditSum);
 		$transactionGroup->transactions = $transactionObjects;
 		return $transactionGroup;
+	}
+
+	/**
+	 * @param int $duration groups duration in days
+	 * @param int|null $maxCycles
+	 * @return mixed[]
+	 */
+	public function retrieveChunksOfGroupedTransactions($duration, $maxCycles = 6)
+	{
+		$currentGroupIndex = 0;
+		$lastNonEmptyIndex = $maxCycles;
+		$earlyDateIndex = $duration;
+		$laterDateIndex = null;
+		$transactionGroups = [];
+		while ($currentGroupIndex < $maxCycles) {
+			$laterDate = !$laterDateIndex ? $laterDateIndex : date('Y-m-d', strtotime("-". $laterDateIndex. " days"));
+			$earlyDate = date('Y-m-d', strtotime("-". $earlyDateIndex. " days"));
+
+			$transactionsGroup = $this->retrieveGroupedSumsOfTransactionsAsObjects($earlyDate, $laterDate);
+			if (!empty($transactionsGroup->transactions)) {
+				$lastNonEmptyIndex = $currentGroupIndex;
+			}
+			$transactionGroups[] = $transactionsGroup;
+
+			$currentGroupIndex++;
+			$laterDateIndex = $earlyDateIndex;
+			$earlyDateIndex += $duration;
+		}
+		// Trim off the empty transaction groups at the end of the array,
+		// but I want to see a continuous timeline, so include other empty
+		// groups
+		return array_slice($transactionGroups, 0, $lastNonEmptyIndex+1);
 	}
 
 	/**
@@ -434,6 +443,6 @@ class LedgerManager {
 	 */
 	public function validateDelete($id)
 	{
-		return $id;
+		return is_integer($id);
 	}
 }
