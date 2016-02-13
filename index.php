@@ -68,12 +68,13 @@ if (isset($verb)) {
 			->render();
 	}
 	elseif ($verb == 'summary') {
-		list($header, $transactionGroups) = setupSummary($thisScript, $duration, $ledgerManager);
+		list($durationDescriptions, $transactionGroups) = setupSummary($duration, $ledgerManager);
 		$template = new Template();
 		$template->thisScript = $thisScript;
 		$template->totalBalance = $ledgerManager->getBalance();
 		$template->daysLeft = $ledgerManager->numberOfDaysLeftInPayPeriod();
-		$template->header = $header;
+		$template->duration = $duration;
+		$template->durationDescriptions = $durationDescriptions;
 		$template->transactionGroups = $transactionGroups;
 		$template->budgetLiClass = '';
 		$template->summaryLiClass = 'class="active"';
@@ -85,11 +86,11 @@ if (isset($verb)) {
 		$transaction = $ledgerManager->retrieveTransaction($id);
 		$template = new Template();
 		$template->thisScript = $thisScript;
-		$template->id = $transaction['id'];
-		$template->description = $transaction['description'];
-		$template->amount = $transaction['amount'];
-		$template->cleared = $transaction['cleared'];
-		$template->time = date('M j, Y g:i A', strtotime($transaction['time']));
+		$template->id = $transaction->id;
+		$template->description = $transaction->description;
+		$template->amount = $transaction->amount;
+		$template->cleared = $transaction->cleared;
+		$template->time = date('M j, Y g:i A', strtotime($transaction->time));
 		$template->setFile('templates/update-modal.phtml')
 			->setLayout('templates/@null-layout.phtml')
 			->render();
@@ -98,10 +99,10 @@ if (isset($verb)) {
 		$transaction = $ledgerManager->retrieveTransaction($id);
 		$template = new Template();
 		$template->thisScript = $thisScript;
-		$template->id = $transaction['id'];
-		$template->description = $transaction['description'];
-		$template->amount = $transaction['amount'];
-		$template->time = date('M j, Y g:i A', strtotime($transaction['time']));
+		$template->id = $transaction->id;
+		$template->description = $transaction->description;
+		$template->amount = $transaction->amount;
+		$template->time = date('M j, Y g:i A', strtotime($transaction->time));
 		$template->setFile('templates/delete-modal.phtml')
 			->setLayout('templates/@null-layout.phtml')
 			->render();
@@ -131,44 +132,14 @@ function redirectTo($URL) {
 	header( "Location: https://{$URL}");
 	exit(0); // This is Optional but suggested, to avoid any accidental output
 }
-function setupSummary($thisScript, $duration, $ledgerManager) {
-	$lnks = [
+function setupSummary($duration, $ledgerManager) {
+	$durationDescriptions = [
 		'Weekly' => 7,
 		'Bi-Weekly' => 15,
 		'Monthly' => 30,
 		'Quarterly' => 91,
 		'Bi-Annually' => 183
 	];
-	$header = "";
-	foreach ($lnks as $k=>$v) {
-		if ($v != 7) { $header .= "&nbsp;&nbsp;|&nbsp;&nbsp;"; }
-		if ($v == $duration) {
-			$header .= "$k";
-		} else {
-			$header .= "<a href='". $thisScript. "?verb=summary&duration=$v'>$k</a>";
-		}
-	}
-
-	$done = 0;
-	$maxCycles = 6;
-	$earlyIndex = $duration;
-	$laterIndex = null;
-	$transactionGroups = [];
-	while (!$done) {
-		$maxCycles--;
-		$laterDate = !$laterIndex ? $laterIndex : date('Y-m-d', strtotime("-". $laterIndex. " days"));
-		$earlyDate = date('Y-m-d', strtotime("-". $earlyIndex. " days"));
-
-		$transactionsGroup = $ledgerManager->retrieveGroupedSumsOfTransactionsAsObjects($earlyDate, $laterDate);
-		if (!empty($transactionsGroup->transactions)) {
-			$transactionGroups[] = $transactionsGroup;
-		}
-
-		$laterIndex = $earlyIndex;
-		$earlyIndex += $duration;
-		if (empty($transactionsGroup) || !$maxCycles) {
-			$done = 1;
-		}
-	}
-	return [$header, $transactionGroups];
+	$transactionGroups = $ledgerManager->retrieveChunksOfGroupedTransactions($duration);
+	return [$durationDescriptions, $transactionGroups];
 }
