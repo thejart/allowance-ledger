@@ -200,7 +200,7 @@ class LedgerManager {
 	 * @param string $cutOffDate
 	 * @return mixed[]
 	 */
-	public function getAllUnclearedTransactionsBeforeCutOffDate($cutOffDate)
+	public function getAllUnclearedTransactionsBeforeCutoffDate($cutOffDate)
 	{
 		$query = $this->pdo->prepare("
 			select id, credit, description, amount, time, cleared
@@ -295,7 +295,7 @@ class LedgerManager {
 				$runningBalance += $row['amount'];
 			}
 		}
-		return $allTransactions;
+		return $this->convertTransactionRowsToObjects($allTransactions);
 	}
 
 	/**
@@ -320,38 +320,6 @@ class LedgerManager {
 			$transactions[] = $transaction;
 		}
 		return $transactions;
-	}
-
-	/**
-	 * This calls retrieveARangeOfTransactions() and
-	 * converts the associative array response to a standard class
-	 *
-	 * @param string $windowStartDate
-	 * @param string|null $endDate
-	 * @return stdClass[]
-	 */
-	public function retrieveARangeOfTransactionsAsObjects($windowStartDate, $endDate = null)
-	{
-		$transactionObjects = [];
-		$transactions = $this->retrieveARangeOfTransactions($windowStartDate, $endDate);
-		return $this->convertTransactionRowsToObjects($transactions);
-	}
-
-	/**
-	 * This calls getAllUnclearedTransactionsBeforeCutOffDate() and
-	 * converts the associative array response to a standard class
-	 *
-	 * @param string $cutOffDate
-	 * @return stdClass[]
-	 */
-	public function getAllUnclearedTransactionsBeforeCutOffDateAsObjects($cutOffDate)
-	{
-		$transactionObjects = [];
-		$transactions = $this->getAllUnclearedTransactionsBeforeCutOffDate($cutOffDate);
-		foreach ($transactions as $t) {
-			$transactionObjects[] = $t;
-		}
-		return $transactionObjects;
 	}
 
 	/**
