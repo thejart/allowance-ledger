@@ -1,5 +1,5 @@
 {if $transactions}
-{foreach $transactions as $index => $t}
+{foreach $transactions as $t}
 	{$balance = sprintf('%01.2f',$t->balance)}
 	{if $t->balance <= 0}
 		{$context = 'class="danger"'}
@@ -30,18 +30,14 @@
 	</td>
 
 	<td class="text-right">
-	{if !$index}
-		<b>${$balance}</b>
-	{else}
-		${$balance}
-	{/if}
+	${$balance}
 	</td>
 </tr>
 {/foreach}
 {/if}
 
 {if $unclearedTransactions}
-{foreach $unclearedTransactions as $index => $t}
+{foreach $unclearedTransactions as $t}
 <tr class="info uncleared">
 	<td>
 		<a href="{$thisScript}?verb=deleteModal&id={$t->id}" data-toggle="modal" data-target="#deleteModal"><span class='glyphicon glyphicon-trash'></span></a>

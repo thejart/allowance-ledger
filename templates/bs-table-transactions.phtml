@@ -61,7 +61,7 @@
 {/if}
 
 {if $unclearedTransactions}
-{foreach $unclearedTransactions as $index => $t}
+{foreach $unclearedTransactions as $t}
 <tr class="info uncleared">
 	<td>
 		<a href="{$thisScript}?verb=deleteModal&id={$t->id}" data-toggle="modal" data-target="#deleteModal"><span class='glyphicon glyphicon-trash'></span></a>
