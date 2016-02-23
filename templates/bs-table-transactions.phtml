@@ -62,7 +62,7 @@
 
 {if $unclearedTransactions}
 {foreach $unclearedTransactions as $t}
-<tr class="info uncleared">
+<tr class="warning uncleared">
 	<td>
 		<a href="{$thisScript}?verb=deleteModal&id={$t->id}" data-toggle="modal" data-target="#deleteModal"><span class='glyphicon glyphicon-trash'></span></a>
 	</td>
