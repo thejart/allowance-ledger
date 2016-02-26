@@ -16,7 +16,11 @@
 	</td>
 
 	<td>
-		{$t->description} ({$t->tshort})
+		{$t->tshort}
+	</td>
+
+	<td>
+		{$t->description}
 	</td>
 
 	<td>
@@ -43,7 +47,13 @@
 		<a href="{$thisScript}?verb=deleteModal&id={$t->id}" data-toggle="modal" data-target="#deleteModal"><span class='glyphicon glyphicon-trash'></span></a>
 	</td>
 
-	<td>{$t->description} ({$t->tshort})</td>
+	<td>
+		{$t->tshort}
+	</td>
+
+	<td>
+		{$t->description}
+	</td>
 
 	<td>
 		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-toggle="modal" data-target="#updateModal">(${$t->amount})</a>
@@ -54,7 +64,7 @@
 {/foreach}
 {/if}
 <tr class='mutable'>
-	<td colspan=4>
+	<td colspan=5>
 		<button id="moreTransactions" nextwindowend="{$nextWindowEnd}" type="button" class="btn btn-secondary btn-lg btn-block">Load more</button>
 	</td>
 </tr>
