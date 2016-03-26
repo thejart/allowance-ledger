@@ -2,3 +2,4 @@ env.setup
 *.swp
 templateManager/*
 bootstrap/*
+.idea/*
