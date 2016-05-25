@@ -16,16 +16,17 @@
 	{$debitSum = $transactionGroup->debitSum}
 	{$creditSum = $transactionGroup->creditSum}
 
-<div class="row">
-	<div class="col-xs-8 text-info">
-		<big>{$from} - {$to}</big>
-	</div>
-	<div class="col-xs-4 pull-right text-right">
-		<b>${$creditSum}</b>
-	</div>
-</div>
-
 <table class="table table-striped">
+	<tr class="success">
+		<th>
+			<big>{$from} - {$to}</big>
+		</th>
+		<th>&nbsp;</th>
+		<th class="text-right">
+			<i>${$creditSum}</i>
+		</th>
+	</tr>
+
 	{$i = 1}
 	{foreach $transactionGroup->transactions as $t}
 		{if $i%2}
@@ -33,26 +34,26 @@
 		{else}
 			{$bgcolor = ''}
 		{/if}
-<tr>
-	<td class="col-xs-6">{$t->description}</td>
+	<tr>
+		<td class="col-xs-6">{$t->description}</td>
 
-	<td class="col-xs-2"><em>{$t->percent}%</em></td>
+		<td class="col-xs-2"><em>{$t->percent}%</em></td>
 
-	<td class="col-xs-4 text-right">
-	{if !$t->description}
-		<b>${$t->amount}</b>
-	{else}
-		${$t->amount}
-	{/if}
-	</td>
-</tr>
-		{$i++}
-	{/foreach}
-<tr class="info">
-	<td><i>Total Debits</i></td>
-	<td>&nbsp;</td>
-	<td class="text-right"><b>${$debitSum}</b></td>
-</tr>
+		<td class="col-xs-4 text-right">
+		{if !$t->description}
+			<b>${$t->amount}</b>
+		{else}
+			${$t->amount}
+		{/if}
+		</td>
+	</tr>
+			{$i++}
+		{/foreach}
+	<tr class="info">
+		<td><i>Total Debits</i></td>
+		<td>&nbsp;</td>
+		<td class="text-right"><b>${$debitSum}</b></td>
+	</tr>
 </table>
 
 {/foreach}
