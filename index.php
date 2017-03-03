@@ -117,7 +117,8 @@ if (isset($verb)) {
         $unclearedAmount = $ledgerManager->getUnclearedAmount();
         $daysLeft = $ledgerManager->numberOfDaysLeftInPayPeriod();
 
-        $discrepancy = $checkBalance - ($savePlusSurplus + $outstandingBills + $outstandingOther) - ($ledgerBalance - $unclearedAmount);
+	// (checking account balance) - (all outstanding expenses and surplus tallied in budget doc) - (ledgerBalance excluding uncleared items)
+        $discrepancy = $checkBalance - ($savePlusSurplus + $outstandingBills + $outstandingOther) - ($ledgerBalance + $unclearedAmount);
         echo "<h1><p class='text-center bg-info'>". sprintf('%01.2f', $discrepancy). "</p></h1>";
     }
 	else {
