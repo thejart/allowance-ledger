@@ -26,7 +26,7 @@
 		  <li {$budgetLiClass}><a href="{$thisScript}">Ledger</a></li>
 		  <li {$summaryLiClass}><a href="{$thisScript}?verb=summary">Summary</a></li>
 		  <li><a href="#" data-toggle="modal" data-target="#newLedgerModal">New Transaction</a></li>
-		  <li><a href="#" data-toggle="modal" data-target="#calculator">Calculator</a></li>
+		  <li><a href="#" data-toggle="modal" data-target="#calculator">Calc</a></li>
 		</ul>
 		<ul class="nav navbar-nav navbar-right">
 			<li><a href='#'>${$dailyBalance}/day for {$daysLeft} days</a></li>
@@ -99,6 +99,10 @@
                     <div class="form-group">
                         <label for="outstandingOther">other outstanding costs</label>
                         <input type="text" class="form-control" name="outstandingOther" placeholder="other outstanding costs">
+                    </div>
+                    <div class="form-group">
+                        <label for="clearedLedger">cleared ledger amount</label>
+                        <input type="text" class="form-control" name="clearedLedger" value='{$clearedLedgerAmount}' readonly>
                     </div>
                     <input id="calcSubmit" type="submit" class="form-control btn-primary" value="OK">
                 </form>

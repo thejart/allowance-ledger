@@ -45,6 +45,7 @@ if (isset($verb)) {
 		$template->unclearedAmount = sprintf('%01.2f', $ledgerManager->getUnclearedAmount());
 		$template->transactions = $ledgerManager->retrieveARangeOfTransactions($windowStartDate);
 		$template->unclearedTransactions = $ledgerManager->getAllUnclearedTransactionsBeforeCutoffDate($windowStartDate);
+		$template->clearedLedgerAmount = sprintf('%01.2f', (float)$template->totalBalance + (float)$ledgerManager->getUnclearedAmount());
 		$template->budgetLiClass = 'class="active"';
 		$template->summaryLiClass = '';
 		$template->nextWindowEnd = $windowStartDate;
