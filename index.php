@@ -107,6 +107,19 @@ if (isset($verb)) {
 			->setLayout('templates/@null-layout.phtml')
 			->render();
 	}
+	elseif ($verb == 'calculator') {
+        $checkBalance = (float)getRequestParam('checkBalance', 0);
+        $savePlusSurplus = (float)getRequestParam('saveSurplus', 0);
+        $outstandingBills = (float)getRequestParam('outstandingBills', 0);
+        $outstandingOther = (float)getRequestParam('outstandingOther', 0);
+
+        $ledgerBalance = $ledgerManager->getBalance();
+        $unclearedAmount = $ledgerManager->getUnclearedAmount();
+        $daysLeft = $ledgerManager->numberOfDaysLeftInPayPeriod();
+
+        $discrepancy = $checkBalance - ($savePlusSurplus + $outstandingBills + $outstandingOther) - ($ledgerBalance - $unclearedAmount);
+        echo "<h1><p class='text-center bg-info'>". sprintf('%01.2f', $discrepancy). "</p></h1>";
+    }
 	else {
 		echo '(nope)';
 	}
