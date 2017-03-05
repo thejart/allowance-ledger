@@ -215,6 +215,22 @@ class LedgerManager {
 		return $this->convertTransactionRowsToObjects($query->fetchAll(PDO::FETCH_ASSOC));
 	}
 
+    /**
+     * @return float
+     */
+	public function getLastAllowanceCredit()
+    {
+        $query = $this->pdo->query("
+			select amount
+			from {$this->table}
+			where credit = 1
+			order by time desc
+			limit 1
+		");
+        $row = $query->fetch(PDO::FETCH_ASSOC);
+        return (float)$row['amount'];
+    }
+
 	/**
 	 * This method returns a list of grouped, summed transaction.  It's used
 	 * to tally up common transaction types over a date range.  ie. How much
