@@ -114,12 +114,15 @@ if (isset($verb)) {
         $outstandingBills = (float)getRequestParam('outstandingBills', 0);
         $outstandingOther = (float)getRequestParam('outstandingOther', 0);
 
+        $dayOfTheMonth = (int)date('d');
+        $allowancePrepayment = ($dayOfTheMonth < 15) ? $ledgerManager->getLastAllowanceCredit() : 0;
+
         $ledgerBalance = $ledgerManager->getBalance();
         $unclearedAmount = $ledgerManager->getUnclearedAmount();
         $daysLeft = $ledgerManager->numberOfDaysLeftInPayPeriod();
 
-	// (checking account balance) - (all outstanding expenses and surplus tallied in budget doc) - (ledgerBalance excluding uncleared items)
-        $discrepancy = $checkBalance - ($savePlusSurplus + $outstandingBills + $outstandingOther) - ($ledgerBalance + $unclearedAmount);
+	    // (checking account balance) - (all outstanding expenses and surplus tallied in budget doc) - (ledgerBalance excluding uncleared items)
+        $discrepancy = $checkBalance - ($savePlusSurplus + $outstandingBills + $outstandingOther) - ($ledgerBalance + $unclearedAmount - $allowancePrepayment);
         echo "<h1><p class='text-center bg-info'>". sprintf('%01.2f', $discrepancy). "</p></h1>";
     }
 	else {
