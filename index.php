@@ -5,7 +5,7 @@ require 'ledgerManager.php';
 require 'templateManager/Template.php';
 
 $pathArray = pathinfo(__FILE__);
-$path = preg_replace('/\/var\/www\//', '', $pathArray['dirname']). "/";
+$path = "";
 $thisScript = $pathArray['basename'];
 $host = $_SERVER['HTTP_HOST'];
 list($user, $password, $database, $table) = setupEnvironment();
