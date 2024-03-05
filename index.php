@@ -116,7 +116,7 @@ error_log($logString);
 
 function setupEnvironment() {
 	try {
-		$environmentFile = file_get_contents('env.setup');
+		$environmentFile = file_get_contents('.env');
 	} catch (Exception $e) {
 		error_log('Mysql creds not determined, exiting');
 		exit(1);

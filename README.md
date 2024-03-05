@@ -8,7 +8,7 @@ This repo relies on a couple of 3rd party libraries, Twitter's Bootstrap and ada
 2. Clone the template manager code
 3. Download, unzip bootstrap, and move it to the bootstrap directorty
 4. Import ledger schema
-5. Create env.setup (described below)
+5. Create .env (described below)
 
 ```
 git clone git@github.com:thejart/Template.git templateManager
@@ -18,7 +18,7 @@ mv bootstrap-3.3.6-dist bootstrap
 mysql -uUSER -p DATABASE < mysql-schemal.sql
 ```
 
-env.setup contains the username, password, database, and table to your local mysql server, newline delimited like:
+.env contains the username, password, database, and table to your local mysql server, newline delimited like:
 ```
 username
 password
@@ -28,8 +28,8 @@ table
 
 I suggest chown'ing the file root:www-data (or whatever user apache runs as on your system) and chmod'ing it 640 for some semblance of security.
 ```
-sudo chown root:www-data env.setup
-sudo chmod 640 env.setup
+sudo chown root:www-data .env
+sudo chmod 640 .env
 ```
 
 Once all of that is in place, you'll have a blank slate for keeping track of your transactions. (Hint: start by adding money)
