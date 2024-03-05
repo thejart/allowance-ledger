@@ -5,7 +5,7 @@ require 'ledgerManager.php';
 require 'templateManager/Template.php';
 
 $pathArray = pathinfo(__FILE__);
-$path = preg_replace('/\/var\/www\//', '', $pathArray['dirname']). "/";
+$path = "";
 $thisScript = $pathArray['basename'];
 $host = $_SERVER['HTTP_HOST'];
 list($user, $password, $database, $table) = setupEnvironment();
@@ -116,7 +116,7 @@ error_log($logString);
 
 function setupEnvironment() {
 	try {
-		$environmentFile = file_get_contents('env.setup');
+		$environmentFile = file_get_contents('.env');
 	} catch (Exception $e) {
 		error_log('Mysql creds not determined, exiting');
 		exit(1);
