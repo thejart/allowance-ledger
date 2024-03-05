@@ -23,7 +23,7 @@
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="bootstrap/js/bootstrap.min.js"></script>
 
-{$dailyBalance = sprintf('%01.2f', $totalBalance/$daysLeft)}
+{$dailyBalance = number_format($totalBalance/$daysLeft, 2)}
 
 	<nav class="navbar navbar-default">
 	  <div class="container">

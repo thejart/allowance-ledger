@@ -42,7 +42,7 @@ if (isset($verb)) {
 		$template->thisScript = $thisScript;
 		$template->totalBalance = $ledgerManager->getBalance();
 		$template->daysLeft = $ledgerManager->numberOfDaysLeftInPayPeriod();
-		$template->unclearedAmount = sprintf('%01.2f', $ledgerManager->getUnclearedAmount());
+		$template->unclearedAmount = number_format($ledgerManager->getUnclearedAmount(), 2);
 		$template->transactions = $ledgerManager->retrieveARangeOfTransactions($windowStartDate);
 		$template->unclearedTransactions = $ledgerManager->getAllUnclearedTransactionsBeforeCutoffDate($windowStartDate);
 		$template->budgetLiClass = 'class="active"';

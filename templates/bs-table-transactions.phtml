@@ -20,7 +20,7 @@
 
 {if $transactions}
 {foreach $transactions as $index => $t}
-	{$balance = sprintf('%01.2f',$t->balance)}
+	{$balance = number_format($t->balance, 2)}
 	{if $t->balance <= 0}
 		{$context = 'class="danger"'}
 	{elseif !$t->cleared && !$t->credit}
