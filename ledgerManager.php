@@ -432,9 +432,9 @@ class LedgerManager {
     protected function financiallyFormatValue($value, $isNegative = false)
     {
         if ($value < 0 || $isNegative) {
-            return "($" . number_format(abs($value), 2) . ")";
+            return "(" . number_format(abs($value), 2) . ")";
         }
-        return "$" . number_format($value, 2);
+        return number_format($value, 2);
     }
 
 	/**
