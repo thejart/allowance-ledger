@@ -20,7 +20,6 @@
 
 {if $transactions}
 {foreach $transactions as $index => $t}
-	{$balance = number_format($t->balance, 2)}
 	{if $t->balance <= 0}
 		{$context = 'class="danger"'}
 	{elseif !$t->cleared && !$t->credit}
@@ -55,9 +54,9 @@
 
 	<td class="text-right">
 	{if !$index}
-		<b>${$balance}</b>
+        <b>${$t->formattedBalance}</b>
 	{else}
-		${$balance}
+        ${$t->formattedBalance}
 	{/if}
 	</td>
 </tr>

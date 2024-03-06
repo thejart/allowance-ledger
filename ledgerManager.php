@@ -321,6 +321,7 @@ class LedgerManager {
 			$transaction->tshort = date('n/j', strtotime($t['time']));
 			if (isset($t['balance'])) {
 				$transaction->balance = $t['balance'];
+                $transaction->formattedBalance = $this->financiallyFormatBalance($transaction->balance);
 			}
 			$transactions[] = $transaction;
 		}
@@ -413,6 +414,18 @@ class LedgerManager {
 			return (int)$row['daysLeft'];
 		}
 	}
+
+    /**
+     * @param int $balance
+     * @return string
+     */
+    protected function financiallyFormatBalance($balance)
+    {
+        if ($balance < 0) {
+            return "(" . number_format(abs($balance), 2) . ")";
+        }
+        return number_format($balance, 2);
+    }
 
 	/**
 	 * @param string $description
