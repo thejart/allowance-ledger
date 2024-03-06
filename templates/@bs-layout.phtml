@@ -8,20 +8,15 @@
     <title>Allowance Ledger</title>
 
     <!-- Bootstrap -->
-    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
   </head>
   <body>
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
 {$dailyBalance = sprintf('%01.2f', $totalBalance/$daysLeft)}
 
@@ -31,6 +26,7 @@
 		  <li {$budgetLiClass}><a href="{$thisScript}">Ledger</a></li>
 		  <li {$summaryLiClass}><a href="{$thisScript}?verb=summary">Summary</a></li>
 		  <li><a href="#" data-toggle="modal" data-target="#newLedgerModal">New Transaction</a></li>
+		  <li><a href="#" data-toggle="modal" data-target="#calculator">Calc</a></li>
 		</ul>
 		<ul class="nav navbar-nav navbar-right">
 			<li><a href='#'>${$dailyBalance}/day for {$daysLeft} days</a></li>
@@ -77,5 +73,66 @@
   </div>
 </div>
 
+<div id="calculator" class="modal" role="dialog" tabindex=-1>
+    <div class="modal-dialog modal-med">
+
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Discrepancy Calculator</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form" role="form" id="modalForm-med" action="#">
+                    <input type="hidden" name="verb" value="calculator">
+                    <div class="form-group">
+                        <label for="checkBalance">checking balance</label>
+                        <input type="text" class="form-control" name="checkBalance" placeholder="checking balance">
+                    </div>
+                    <div class="form-group">
+                        <label for="saveSurplus">savings + surplus</label>
+                        <input type="text" class="form-control" name="saveSurplus" placeholder="savings + surplus">
+                    </div>
+                    <div class="form-group">
+                        <label for="outstandingBills">outstanding bills</label>
+                        <input type="text" class="form-control" name="outstandingBills" placeholder="outstanding bills">
+                    </div>
+                    <div class="form-group">
+                        <label for="outstandingOther">other outstanding costs</label>
+                        <input type="text" class="form-control" name="outstandingOther" placeholder="other outstanding costs">
+                    </div>
+                    <div class="form-group">
+                        <label for="clearedLedger">cleared ledger amount</label>
+                        <input type="text" class="form-control" name="clearedLedger" value='{$clearedLedgerAmount}' readonly>
+                    </div>
+                    <input id="calcSubmit" type="submit" class="form-control btn-primary" value="OK">
+                </form>
+                <div id="answer"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+  <script type="text/javascript">
+      $(function() {
+        $("#modalForm-med").submit(function() {
+            var calcData = {
+                verb : "calculator",
+                checkBalance : ($('input[name=checkBalance]').val() ? $('input[name=checkBalance]').val() : 0),
+                saveSurplus : ($('input[name=saveSurplus]').val() ? $('input[name=saveSurplus]').val() : 0),
+                outstandingBills : ($('input[name=outstandingBills]').val() ? $('input[name=outstandingBills]').val() : 0),
+                outstandingOther : ($('input[name=outstandingOther]').val() ? $('input[name=outstandingOther]').val() : 0),
+            };
+            //alert(JSON.stringify(calcData)); return false;
+            $.post("{$thisScript}", calcData, function(result) {
+                $("#answer").html(result);
+            });
+            return false;
+        });
+      });
+  </script>
   </body>
 </html>

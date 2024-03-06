@@ -45,6 +45,7 @@ if (isset($verb)) {
 		$template->unclearedAmount = sprintf('%01.2f', $ledgerManager->getUnclearedAmount());
 		$template->transactions = $ledgerManager->retrieveARangeOfTransactions($windowStartDate);
 		$template->unclearedTransactions = $ledgerManager->getAllUnclearedTransactionsBeforeCutoffDate($windowStartDate);
+		$template->clearedLedgerAmount = sprintf('%01.2f', (float)$template->totalBalance + (float)$ledgerManager->getUnclearedAmount());
 		$template->budgetLiClass = 'class="active"';
 		$template->summaryLiClass = '';
 		$template->nextWindowEnd = $windowStartDate;
@@ -107,6 +108,24 @@ if (isset($verb)) {
 			->setLayout('templates/@null-layout.phtml')
 			->render();
 	}
+	elseif ($verb == 'calculator') {
+        $checkBalance = (float)getRequestParam('checkBalance', 0);
+        $savePlusSurplus = (float)getRequestParam('saveSurplus', 0);
+        $outstandingBills = (float)getRequestParam('outstandingBills', 0);
+        $outstandingOther = (float)getRequestParam('outstandingOther', 0);
+
+        $dayOfTheMonth = (int)date('d');
+        $allowancePrepayment = ($dayOfTheMonth < 15) ? $ledgerManager->getLastAllowanceCredit() : 0;
+        $calculationNote = $allowancePrepayment ? " (ignoring {$allowancePrepayment} credit)" : "";
+
+        $ledgerBalance = $ledgerManager->getBalance();
+        $unclearedAmount = $ledgerManager->getUnclearedAmount();
+        $daysLeft = $ledgerManager->numberOfDaysLeftInPayPeriod();
+
+	    // (checking account balance) - (all outstanding expenses and surplus tallied in budget doc) - (ledgerBalance excluding uncleared items)
+        $discrepancy = $checkBalance - ($savePlusSurplus + $outstandingBills + $outstandingOther) - ($ledgerBalance + $unclearedAmount - $allowancePrepayment);
+        echo "<h1><p class='text-center bg-info'>". sprintf('%01.2f', $discrepancy). "{$calculationNote}</p></h1>";
+    }
 	else {
 		echo '(nope)';
 	}
