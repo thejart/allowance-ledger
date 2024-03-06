@@ -316,12 +316,13 @@ class LedgerManager {
 			$transaction->credit = $t['credit'];
 			$transaction->description = $t['description'];
 			$transaction->amount = number_format($t['amount'], 2);
+            $transaction->formattedAmount = $this->financiallyFormatValue($t['amount'], $t['credit']);
 			$transaction->time = $t['time'];
 			$transaction->cleared = $t['cleared'];
 			$transaction->tshort = date('n/j', strtotime($t['time']));
 			if (isset($t['balance'])) {
 				$transaction->balance = $t['balance'];
-                $transaction->formattedBalance = $this->financiallyFormatBalance($transaction->balance);
+                $transaction->formattedBalance = $this->financiallyFormatValue($transaction->balance);
 			}
 			$transactions[] = $transaction;
 		}
@@ -416,15 +417,19 @@ class LedgerManager {
 	}
 
     /**
-     * @param int $balance
+     * Values can be coming from the database or are calculated. The former
+     * requires that you check if the value is a debit or credit before formatting.
+     *
+     * @param int $value
+     * @param bool $isCredit
      * @return string
      */
-    protected function financiallyFormatBalance($balance)
+    protected function financiallyFormatValue($value, $isCredit = true)
     {
-        if ($balance < 0) {
-            return "(" . number_format(abs($balance), 2) . ")";
+        if ($value < 0 || !$isCredit) {
+            return "($" . number_format(abs($value), 2) . ")";
         }
-        return number_format($balance, 2);
+        return "$" . number_format($value, 2);
     }
 
 	/**
