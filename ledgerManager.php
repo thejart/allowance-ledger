@@ -316,13 +316,13 @@ class LedgerManager {
 			$transaction->credit = $t['credit'];
 			$transaction->description = $t['description'];
 			$transaction->amount = number_format($t['amount'], 2);
-            $transaction->formattedAmount = $this->financiallyFormatValue($t['amount'], !$t['credit']);
+			$transaction->formattedAmount = $this->financiallyFormatValue($t['amount'], !$t['credit']);
 			$transaction->time = $t['time'];
 			$transaction->cleared = $t['cleared'];
 			$transaction->tshort = date('n/j', strtotime($t['time']));
 			if (isset($t['balance'])) {
 				$transaction->balance = $t['balance'];
-                $transaction->formattedBalance = $this->financiallyFormatValue($transaction->balance);
+				$transaction->formattedBalance = $this->financiallyFormatValue($transaction->balance);
 			}
 			$transactions[] = $transaction;
 		}
@@ -416,26 +416,26 @@ class LedgerManager {
 		}
 	}
 
-    /**
-     * Financially format an incoming value for display.
-     * Note: Amounts stored in the database are always positive and require
-     *       a separate boolean field to indicate whether it's a debit/credit
-     * Eg.
-     *   12.4 => $12.40
-     *   -3   => ($3.00)
-     *   4.56 (w/ $isNegative == true) => ($4.56)
-     *
-     * @param int $value
-     * @param bool $isNegative
-     * @return string
-     */
-    protected function financiallyFormatValue($value, $isNegative = false)
-    {
-        if ($value < 0 || $isNegative) {
-            return "(" . number_format(abs($value), 2) . ")";
-        }
-        return number_format($value, 2);
-    }
+	/**
+	 * Financially format an incoming value for display.
+	 * Note: Amounts stored in the database are always positive and require
+	 *       a separate boolean field to indicate whether it's a debit/credit
+	 * Eg.
+	 *   12.4 => 12.40
+	 *   -3   => (3.00)
+	 *   4.56 (w/ $isNegative == true) => (4.56)
+	 *
+	 * @param int $value
+	 * @param bool $isNegative
+	 * @return string
+	 */
+	protected function financiallyFormatValue($value, $isNegative = false)
+	{
+		if ($value < 0 || $isNegative) {
+			return "(" . number_format(abs($value), 2) . ")";
+		}
+		return number_format($value, 2);
+	}
 
 	/**
 	 * @param string $description

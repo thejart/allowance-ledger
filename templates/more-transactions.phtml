@@ -23,15 +23,15 @@
 	</td>
 
 	<td>
-    {if !$t->credit && !$t->cleared}
-        <a href="{$thisScript}?verb=updateModal&id={$t->id}" data-toggle="modal" data-target="#updateModal">{$t->formattedAmount}</a>
-    {else}
-        {$t->formattedAmount}
-    {/if}
+	{if !$t->credit && !$t->cleared}
+		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-toggle="modal" data-target="#updateModal">{$t->formattedAmount}</a>
+	{else}
+		{$t->formattedAmount}
+	{/if}
 	</td>
 
 	<td class="text-right">
-        {$t->formattedBalance}
+		{$t->formattedBalance}
 	</td>
 </tr>
 {/foreach}

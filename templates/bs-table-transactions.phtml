@@ -45,16 +45,16 @@
 	<td>
 	{if !$t->credit && !$t->cleared}
 		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-toggle="modal" data-target="#updateModal">{$t->formattedAmount}</a>
-    {else}
-        {$t->formattedAmount}
+	{else}
+		{$t->formattedAmount}
 	{/if}
 	</td>
 
 	<td class="text-right">
 	{if !$index}
-        <b>{$t->formattedBalance}</b>
+		<b>{$t->formattedBalance}</b>
 	{else}
-        {$t->formattedBalance}
+		{$t->formattedBalance}
 	{/if}
 	</td>
 </tr>
@@ -94,17 +94,17 @@
 
 <div id="updateModal" class="modal" role="dialog" tabindex=-1>
   <div class="modal-dialog modal-sm">
-    <div class="modal-content">
+	<div class="modal-content">
 		<!-- this will be replaced -->
-    </div>
+	</div>
   </div>
 </div>
 
 <div id="deleteModal" class="modal" role="dialog" tabindex=-1>
   <div class="modal-dialog modal-sm">
-    <div class="modal-content">
+	<div class="modal-content">
 		<!-- this will be replaced -->
-    </div>
+	</div>
   </div>
 </div>
 
