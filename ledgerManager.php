@@ -315,12 +315,14 @@ class LedgerManager {
 			$transaction->id = $t['id'];
 			$transaction->credit = $t['credit'];
 			$transaction->description = $t['description'];
-			$transaction->amount = $t['amount'];
+			$transaction->amount = number_format($t['amount'], 2);
+			$transaction->formattedAmount = $this->financiallyFormatValue($t['amount'], !$t['credit']);
 			$transaction->time = $t['time'];
 			$transaction->cleared = $t['cleared'];
 			$transaction->tshort = date('n/j', strtotime($t['time']));
 			if (isset($t['balance'])) {
 				$transaction->balance = $t['balance'];
+				$transaction->formattedBalance = $this->financiallyFormatValue($transaction->balance);
 			}
 			$transactions[] = $transaction;
 		}
@@ -343,9 +345,9 @@ class LedgerManager {
 		$creditSum = $this->getCreditSumForWindow($startDate, $endDate);
 		foreach ($transactions as $t) {
 			$transaction = new stdClass();
-			$transaction->amount = $t['amount'];
+			$transaction->amount = number_format($t['amount'], 2);
 			$transaction->description = $t['description'];
-			$transaction->percent = sprintf('%01.1f', 100*$t['amount']/$debitSum);
+			$transaction->percent = number_format(100*$t['amount']/$debitSum, 2);
 			$transactionObjects[] = $transaction;
 		}
 		if (!$endDate) {
@@ -354,8 +356,8 @@ class LedgerManager {
 		$transactionGroup = new stdClass();
 		$transactionGroup->startDate = date('M j, Y', strtotime($startDate));
 		$transactionGroup->endDate = date('M j, Y', strtotime($endDate));
-		$transactionGroup->debitSum = sprintf('%01.2f', $debitSum);
-		$transactionGroup->creditSum = sprintf('%01.2f', $creditSum);
+		$transactionGroup->debitSum = number_format($debitSum, 2);
+		$transactionGroup->creditSum = number_format($creditSum, 2);
 		$transactionGroup->transactions = $transactionObjects;
 		return $transactionGroup;
 	}
@@ -412,6 +414,27 @@ class LedgerManager {
 			$row = $query->fetch(PDO::FETCH_ASSOC);
 			return (int)$row['daysLeft'];
 		}
+	}
+
+	/**
+	 * Financially format an incoming value for display.
+	 * Note: Amounts stored in the database are always positive and require
+	 *       a separate boolean field to indicate whether it's a debit/credit
+	 * Eg.
+	 *   12.4 => 12.40
+	 *   -3   => (3.00)
+	 *   4.56 (w/ $isNegative == true) => (4.56)
+	 *
+	 * @param int $value
+	 * @param bool $isNegative
+	 * @return string
+	 */
+	protected function financiallyFormatValue($value, $isNegative = false)
+	{
+		if ($value < 0 || $isNegative) {
+			return "(" . number_format(abs($value), 2) . ")";
+		}
+		return number_format($value, 2);
 	}
 
 	/**

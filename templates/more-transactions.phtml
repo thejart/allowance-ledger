@@ -1,6 +1,5 @@
 {if $transactions}
 {foreach $transactions as $t}
-	{$balance = sprintf('%01.2f',$t->balance)}
 	{if $t->balance <= 0}
 		{$context = 'class="danger"'}
 	{elseif !$t->cleared && !$t->credit}
@@ -24,17 +23,15 @@
 	</td>
 
 	<td>
-	{if $t->credit}
-		${$t->amount}
-	{elseif $t->cleared}
-		(${$t->amount})
+	{if !$t->credit && !$t->cleared}
+		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-toggle="modal" data-target="#updateModal">{$t->formattedAmount}</a>
 	{else}
-		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-toggle="modal" data-target="#updateModal">(${$t->amount})</a>
+		{$t->formattedAmount}
 	{/if}
 	</td>
 
 	<td class="text-right">
-	${$balance}
+		{$t->formattedBalance}
 	</td>
 </tr>
 {/foreach}
@@ -56,7 +53,7 @@
 	</td>
 
 	<td>
-		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-toggle="modal" data-target="#updateModal">(${$t->amount})</a>
+		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-toggle="modal" data-target="#updateModal">{$t->formattedAmount}</a>
 	</td>
 
 	<td class="text-right">OLD</td>
