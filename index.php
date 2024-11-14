@@ -5,7 +5,8 @@ require 'ledgerManager.php';
 require 'templateManager/Template.php';
 
 $pathArray = pathinfo(__FILE__);
-$path = "";
+// $path should be used to point to the root web directory for this app, if it's not /
+$path = "allowance-ledger/";
 $thisScript = $pathArray['basename'];
 $host = $_SERVER['HTTP_HOST'];
 list($user, $password, $database, $table) = setupEnvironment();
