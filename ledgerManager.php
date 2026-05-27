@@ -364,15 +364,16 @@ class LedgerManager {
 
 	/**
 	 * @param int $duration groups duration in days
-	 * @param int|null $maxCycles
+	 * @param int $maxCycles
+	 * @param int $offsetDays number of days back to start from (0 = now)
 	 * @return mixed[]
 	 */
-	public function retrieveChunksOfGroupedTransactions($duration, $maxCycles = 6)
+	public function retrieveChunksOfGroupedTransactions($duration, $maxCycles = 6, $offsetDays = 0)
 	{
 		$currentGroupIndex = 0;
 		$lastNonEmptyIndex = $maxCycles;
-		$earlyDateIndex = $duration;
-		$laterDateIndex = null;
+		$earlyDateIndex = $duration + $offsetDays;
+		$laterDateIndex = $offsetDays ?: null;
 		$transactionGroups = [];
 		while ($currentGroupIndex < $maxCycles) {
 			$laterDate = !$laterDateIndex ? $laterDateIndex : date('Y-m-d', strtotime("-". $laterDateIndex. " days"));

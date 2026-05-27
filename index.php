@@ -77,10 +77,27 @@ if (isset($verb)) {
 		$template->duration = $duration;
 		$template->durationDescriptions = $durationDescriptions;
 		$template->transactionGroups = $transactionGroups;
+		$template->nextOffsetDays = $duration * 6;
 		$template->budgetLiClass = '';
 		$template->summaryLiClass = 'active';
 		$template->setFile('templates/bs-table-summary.phtml')
 			->setLayout('templates/@bs-layout.phtml')
+			->render();
+	}
+	elseif ($verb == 'moreSummary') {
+		$offsetDays = (int)getRequestParam('offsetDays', 0);
+		$transactionGroups = $ledgerManager->retrieveChunksOfGroupedTransactions($duration, 6, $offsetDays);
+		$hasMoreData = (bool)array_filter($transactionGroups, function($g) {
+			return !empty($g->transactions);
+		});
+		$template = new Template();
+		$template->thisScript = $thisScript;
+		$template->duration = $duration;
+		$template->transactionGroups = $transactionGroups;
+		$template->hasMoreData = $hasMoreData;
+		$template->nextOffsetDays = $offsetDays + $duration * 6;
+		$template->setFile('templates/more-summary.phtml')
+			->setLayout('templates/@null-layout.phtml')
 			->render();
 	}
 	elseif ($verb == 'updateModal') {
@@ -133,7 +150,7 @@ function redirectTo($URL) {
 	header( "Location: https://{$URL}");
 	exit(0); // This is Optional but suggested, to avoid any accidental output
 }
-function setupSummary($duration, $ledgerManager) {
+function setupSummary($duration, $ledgerManager, $offsetDays = 0) {
 	$durationDescriptions = [
 		'Weekly' => 7,
 		'Bi-Weekly' => 15,
@@ -141,6 +158,6 @@ function setupSummary($duration, $ledgerManager) {
 		'Quarterly' => 91,
 		'Bi-Annually' => 183
 	];
-	$transactionGroups = $ledgerManager->retrieveChunksOfGroupedTransactions($duration);
+	$transactionGroups = $ledgerManager->retrieveChunksOfGroupedTransactions($duration, 6, $offsetDays);
 	return [$durationDescriptions, $transactionGroups];
 }
