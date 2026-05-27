@@ -108,7 +108,7 @@
 
 <script type='text/javascript'>
 function bindMoreTransactionsClick() {
-	$('#moreTransactions').click(function() {
+	$('#moreTransactions').off('click').on('click', function() {
 		var nextWindowEnd = $("#moreTransactions").attr("nextwindowend");
 		$('tr.uncleared').remove();
 		$('tr.mutable').remove();
