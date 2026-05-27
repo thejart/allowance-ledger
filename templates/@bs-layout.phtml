@@ -14,7 +14,7 @@
 
 {$dailyBalance = number_format($totalBalance/$daysLeft, 2)}
 
-	<nav class="navbar navbar-light bg-light">
+	<nav class="navbar bg-light" data-bs-theme="light">
 	  <div class="container">
 		<ul class="navbar-nav flex-row gap-3">
 		  <li class="nav-item"><a class="nav-link {$budgetLiClass}" href="{$thisScript}">Ledger</a></li>
@@ -41,7 +41,7 @@
 		<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 	  </div>
 	  <div class="modal-body">
-		<form class="form" role="form" action="{$thisScript}" method="POST">
+		<form action="{$thisScript}" method="POST">
 			<input type="hidden" name="verb" value="create">
 			<div class="mb-3">
 				<div class="form-check form-check-inline">
