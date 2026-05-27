@@ -12,14 +12,14 @@
 
 {$dailyBalance = number_format($totalBalance/$daysLeft, 2)}
 
-	<nav class="navbar navbar-expand navbar-light bg-light">
+	<nav class="navbar navbar-light bg-light">
 	  <div class="container">
-		<ul class="navbar-nav">
+		<ul class="navbar-nav flex-row">
 		  <li class="nav-item"><a class="nav-link {$budgetLiClass}" href="{$thisScript}">Ledger</a></li>
 		  <li class="nav-item"><a class="nav-link {$summaryLiClass}" href="{$thisScript}?verb=summary">Summary</a></li>
 		  <li class="nav-item"><a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#newLedgerModal">New Transaction</a></li>
 		</ul>
-		<ul class="navbar-nav ms-auto">
+		<ul class="navbar-nav flex-row ms-auto">
 		  <li class="nav-item"><a class="nav-link" href="#">{$dailyBalance}/day for {$daysLeft} days</a></li>
 		</ul>
 	  </div>
