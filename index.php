@@ -46,7 +46,7 @@ if (isset($verb)) {
 		$template->unclearedAmount = number_format($ledgerManager->getUnclearedAmount(), 2);
 		$template->transactions = $ledgerManager->retrieveARangeOfTransactions($windowStartDate);
 		$template->unclearedTransactions = $ledgerManager->getAllUnclearedTransactionsBeforeCutoffDate($windowStartDate);
-		$template->budgetLiClass = 'class="active"';
+		$template->budgetLiClass = 'active';
 		$template->summaryLiClass = '';
 		$template->nextWindowEnd = $windowStartDate;
 		$template->setFile('templates/bs-table-transactions.phtml')
@@ -78,7 +78,7 @@ if (isset($verb)) {
 		$template->durationDescriptions = $durationDescriptions;
 		$template->transactionGroups = $transactionGroups;
 		$template->budgetLiClass = '';
-		$template->summaryLiClass = 'class="active"';
+		$template->summaryLiClass = 'active';
 		$template->setFile('templates/bs-table-summary.phtml')
 			->setLayout('templates/@bs-layout.phtml')
 			->render();

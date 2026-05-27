@@ -2,9 +2,9 @@
 	<ul class="list-inline">
 	{foreach $durationDescriptions as $durationString => $durationValue}
 		{if $durationValue == $duration}
-		<li>{$durationString}</li>
+		<li class="list-inline-item">{$durationString}</li>
 		{else}
-		<li><a href="{$thisScript}?verb=summary&duration={$durationValue}">{$durationString}</a></li>
+		<li class="list-inline-item"><a href="{$thisScript}?verb=summary&duration={$durationValue}">{$durationString}</a></li>
 		{/if}
 	{/foreach}
 	</ul>
@@ -17,29 +17,23 @@
 	{$creditSum = $transactionGroup->creditSum}
 
 <table class="table table-striped">
-	<tr class="success">
+	<tr class="table-success">
 		<th>
 			<i>{$from} - {$to}</i>
 		</th>
 		<th>&nbsp;</th>
-		<th class="text-right">
+		<th class="text-end">
 			<i>${$creditSum}</i>
 		</th>
 	</tr>
 
-	{$i = 1}
 	{foreach $transactionGroup->transactions as $t}
-		{if $i%2}
-			{$bgcolor = 'bg-info'}
-		{else}
-			{$bgcolor = ''}
-		{/if}
 	<tr>
-		<td class="col-xs-6">{$t->description}</td>
+		<td class="col-6">{$t->description}</td>
 
-		<td class="col-xs-2"><em>{$t->percent}%</em></td>
+		<td class="col-2"><em>{$t->percent}%</em></td>
 
-		<td class="col-xs-4 text-right">
+		<td class="col-4 text-end">
 		{if !$t->description}
 			<b>${$t->amount}</b>
 		{else}
@@ -47,12 +41,11 @@
 		{/if}
 		</td>
 	</tr>
-			{$i++}
 		{/foreach}
-	<tr class="danger">
+	<tr class="table-danger">
 		<td><i>Total Debits</i></td>
 		<td>&nbsp;</td>
-		<td class="text-right"><b>${$debitSum}</b></td>
+		<td class="text-end"><b>${$debitSum}</b></td>
 	</tr>
 </table>
 

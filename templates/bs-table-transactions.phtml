@@ -1,6 +1,6 @@
 {if $unclearedAmount > 0}
 <div class="row">
-	<div class="col-xs-6 pull-right text-right">
+	<div class="col-6 float-end text-end">
 		<strong><em>{$unclearedAmount} uncleared</em></strong>
 	</div>
 </div>
@@ -13,7 +13,7 @@
 	&nbsp;
 	</th>
 	<th><i>amount</i></th>
-	<th class="text-right"><i>balance</i></ht>
+	<th class="text-end"><i>balance</i></th>
 </tr>
 </thead>
 <tbody>
@@ -21,17 +21,17 @@
 {if $transactions}
 {foreach $transactions as $index => $t}
 	{if $t->balance <= 0}
-		{$context = 'class="danger"'}
+		{$context = 'class="table-danger"'}
 	{elseif !$t->cleared && !$t->credit}
-		{$context = 'class="info"'}
+		{$context = 'class="table-info"'}
 	{elseif $t->credit}
-		{$context = 'class="success"'}
+		{$context = 'class="table-success"'}
 	{else}
 		{$context = ''}
 	{/if}
 <tr {$context}>
 	<td>
-		<a href="{$thisScript}?verb=deleteModal&id={$t->id}" data-toggle="modal" data-target="#deleteModal"><span class='glyphicon glyphicon-trash'></span></a>
+		<a href="{$thisScript}?verb=deleteModal&id={$t->id}" data-ajax-target="#deleteModal"><span class='bi bi-trash'></span></a>
 	</td>
 
 	<td>
@@ -44,13 +44,13 @@
 
 	<td>
 	{if !$t->credit && !$t->cleared}
-		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-toggle="modal" data-target="#updateModal">{$t->formattedAmount}</a>
+		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-ajax-target="#updateModal">{$t->formattedAmount}</a>
 	{else}
 		{$t->formattedAmount}
 	{/if}
 	</td>
 
-	<td class="text-right">
+	<td class="text-end">
 	{if !$index}
 		<b>{$t->formattedBalance}</b>
 	{else}
@@ -63,9 +63,9 @@
 
 {if $unclearedTransactions}
 {foreach $unclearedTransactions as $t}
-<tr class="warning uncleared">
+<tr class="table-warning uncleared">
 	<td>
-		<a href="{$thisScript}?verb=deleteModal&id={$t->id}" data-toggle="modal" data-target="#deleteModal"><span class='glyphicon glyphicon-trash'></span></a>
+		<a href="{$thisScript}?verb=deleteModal&id={$t->id}" data-ajax-target="#deleteModal"><span class='bi bi-trash'></span></a>
 	</td>
 
 	<td>
@@ -77,22 +77,22 @@
 	</td>
 
 	<td>
-		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-toggle="modal" data-target="#updateModal">{$t->formattedAmount}</a>
+		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-ajax-target="#updateModal">{$t->formattedAmount}</a>
 	</td>
 
-	<td class="text-right">OLD</td>
+	<td class="text-end">OLD</td>
 </tr>
 {/foreach}
 {/if}
 <tr class='mutable'>
 	<td colspan=5>
-		<button id="moreTransactions" nextwindowend="{$nextWindowEnd}" type="button" class="btn btn-secondary btn-lg btn-block">Load more</button>
+		<button id="moreTransactions" nextwindowend="{$nextWindowEnd}" type="button" class="btn btn-secondary btn-lg w-100">Load more</button>
 	</td>
 </tr>
 </tbody>
 </table>
 
-<div id="updateModal" class="modal" role="dialog" tabindex=-1>
+<div id="updateModal" class="modal" role="dialog" tabindex="-1">
   <div class="modal-dialog modal-sm">
 	<div class="modal-content">
 		<!-- this will be replaced -->
@@ -100,7 +100,7 @@
   </div>
 </div>
 
-<div id="deleteModal" class="modal" role="dialog" tabindex=-1>
+<div id="deleteModal" class="modal" role="dialog" tabindex="-1">
   <div class="modal-dialog modal-sm">
 	<div class="modal-content">
 		<!-- this will be replaced -->
@@ -109,7 +109,6 @@
 </div>
 
 <script type='text/javascript'>
-<!--
 function bindMoreTransactionsClick() {
 	$('#moreTransactions').click(function() {
 		var nextWindowEnd = $("#moreTransactions").attr("nextwindowend");
@@ -129,9 +128,5 @@ function bindMoreTransactionsClick() {
 		return false;
 	});
 }
-$('body').on('hidden.bs.modal', '.modal', function () {
-	$(this).removeData('bs.modal');
-});
 bindMoreTransactionsClick();
--->
 </script>

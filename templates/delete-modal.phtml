@@ -1,28 +1,27 @@
 <div class="modal-header">
-	<button type="button" class="close" data-dismiss="modal">&times;</button>
-	<h4 class="modal-title">Delete Transaction</h4>
+	<h5 class="modal-title">Delete Transaction</h5>
+	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="modal-body">
 	<p class="alert alert-danger">Are you sure you want to delete this transaction?</p>
-	<form class="form" role="form" id="modalForm" action="{$thisScript}" method="POST">
+	<form class="form" role="form" action="{$thisScript}" method="POST">
 		<input type="hidden" name="verb" value="delete">
 		<input type="hidden" name="id" value="{$id}">
-		<div class="form-group">
+		<div class="mb-3">
 			<label for="description">description</label>
 			<input type="text" class="form-control" value="{$description}" readonly>
 		</div>
-		<div class="form-group">
+		<div class="mb-3">
 			<label for="amount">amount</label>
 			<input type="text" class="form-control" value="{$amount}" readonly>
 		</div>
-		<div class="form-group">
+		<div class="mb-3">
 			<label for="time">timestamp</label>
 			<input type="text" class="form-control" value="{$time}" readonly>
 		</div>
-		<input type="submit" class="form-control btn-primary" value="OK">
+		<button type="submit" class="btn btn-primary w-100">OK</button>
 	</form>
 </div>
 <div class="modal-footer">
-<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 </div>
-
