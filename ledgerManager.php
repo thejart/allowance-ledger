@@ -32,7 +32,7 @@ class LedgerManager {
 		");
 		return $query->execute([
 			':description' => $description,
-			':amount' => $amount,
+			':amount' => (float)str_replace(',', '', $amount),
 			':credit' => $credit,
 		]);
 	}
@@ -55,7 +55,7 @@ class LedgerManager {
 		");
 		return $query->execute([
 			':description' => $description,
-			':amount' => $amount,
+			':amount' => (float)str_replace(',', '', $amount),
 			':cleared' => $cleared,
 			':transactionId' => $transactionId
 		]);
