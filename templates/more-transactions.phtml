@@ -1,17 +1,17 @@
 {if $transactions}
 {foreach $transactions as $t}
 	{if $t->balance <= 0}
-		{$context = 'class="danger"'}
+		{$context = 'class="table-danger"'}
 	{elseif !$t->cleared && !$t->credit}
-		{$context = 'class="info"'}
+		{$context = 'class="table-info"'}
 	{elseif $t->credit}
-		{$context = 'class="success"'}
+		{$context = 'class="table-success"'}
 	{else}
 		{$context = ''}
 	{/if}
 <tr {$context}>
 	<td>
-		<a href="{$thisScript}?verb=deleteModal&id={$t->id}" data-toggle="modal" data-target="#deleteModal"><span class='glyphicon glyphicon-trash'></span></a>
+		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-ajax-target="#updateModal"><span class='bi bi-pencil-square'></span></a>
 	</td>
 
 	<td>
@@ -24,13 +24,13 @@
 
 	<td>
 	{if !$t->credit && !$t->cleared}
-		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-toggle="modal" data-target="#updateModal">{$t->formattedAmount}</a>
+		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-ajax-target="#updateModal">{$t->formattedAmount}</a>
 	{else}
 		{$t->formattedAmount}
 	{/if}
 	</td>
 
-	<td class="text-right">
+	<td class="text-end">
 		{$t->formattedBalance}
 	</td>
 </tr>
@@ -39,9 +39,9 @@
 
 {if $unclearedTransactions}
 {foreach $unclearedTransactions as $t}
-<tr class="warning uncleared">
+<tr class="table-warning uncleared">
 	<td>
-		<a href="{$thisScript}?verb=deleteModal&id={$t->id}" data-toggle="modal" data-target="#deleteModal"><span class='glyphicon glyphicon-trash'></span></a>
+		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-ajax-target="#updateModal"><span class='bi bi-pencil-square'></span></a>
 	</td>
 
 	<td>
@@ -53,20 +53,18 @@
 	</td>
 
 	<td>
-		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-toggle="modal" data-target="#updateModal">{$t->formattedAmount}</a>
+		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-ajax-target="#updateModal">{$t->formattedAmount}</a>
 	</td>
 
-	<td class="text-right">OLD</td>
+	<td class="text-end">OLD</td>
 </tr>
 {/foreach}
 {/if}
 <tr class='mutable'>
 	<td colspan=5>
-		<button id="moreTransactions" nextwindowend="{$nextWindowEnd}" type="button" class="btn btn-secondary btn-lg btn-block">Load more</button>
+		<button id="moreTransactions" nextwindowend="{$nextWindowEnd}" type="button" class="btn btn-secondary btn-lg w-100">Load more</button>
 	</td>
 </tr>
 <script type="text/javascript">
-<!--
 bindMoreTransactionsClick();
--->
 </script>

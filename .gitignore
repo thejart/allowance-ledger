@@ -1,6 +1,9 @@
 .env
+.env.test
+vendor/
 *.swp
 templateManager/*
 bootstrap/*
 .idea/*
 .DS_Store
+.phpunit.result.cache
