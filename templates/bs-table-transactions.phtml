@@ -108,7 +108,7 @@ function bindMoreTransactionsClick() {
 			type: "POST",
 			url: "{$thisScript}",
 			data: {
-				verb: "moreTransactions",
+				verb: "{$verbMoreTransactions}",
 				windowEndDate: nextWindowEnd
 			},
 			success: function(data) {

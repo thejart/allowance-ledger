@@ -65,7 +65,7 @@ function bindMoreSummaryClick() {
 			type: "POST",
 			url: "{$thisScript}",
 			data: {
-				verb: "moreSummary",
+				verb: "{$verbMoreSummary}",
 				offsetDays: nextOffset,
 				duration: duration
 			},

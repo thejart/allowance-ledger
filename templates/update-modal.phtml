@@ -4,7 +4,7 @@
 </div>
 <div class="modal-body">
 	<form id="updateForm" action="{$thisScript}" method="POST">
-		<input type="hidden" name="verb" value="update">
+		<input type="hidden" name="verb" value="{$verbUpdate}">
 		<input type="hidden" name="id" value="{$id}">
 		<div class="mb-3">
 			<label for="description">description</label>
@@ -28,7 +28,7 @@
 		</div>
 	</form>
 	<form id="deleteForm" action="{$thisScript}" method="POST">
-		<input type="hidden" name="verb" value="delete">
+		<input type="hidden" name="verb" value="{$verbDelete}">
 		<input type="hidden" name="id" value="{$id}">
 	</form>
 </div>

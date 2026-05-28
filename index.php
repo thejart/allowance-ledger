@@ -1,6 +1,7 @@
 <?php
 $startTime = microtime(true);
 require 'ledgerManager.php';
+require 'verb.php';
 // Credit to https://github.com/adamtomecek/Template
 require 'templateManager/Template.php';
 
@@ -12,7 +13,7 @@ $host = $_SERVER['HTTP_HOST'];
 list($user, $password, $database, $table) = setupEnvironment();
 $ledgerManager = new LedgerManager($user, $password, $database, $table);
 
-$verb = getRequestParam('verb', 'transactions');
+$verb = getRequestParam('verb', Verb::TRANSACTIONS);
 $id = (int)getRequestParam('id');
 $description = getRequestParam('description');
 $amount = getRequestParam('amount');
@@ -22,23 +23,23 @@ $duration = getRequestParam('duration', 30);
 $windowStartDate = date('Y-m-d', strtotime("-". $duration. " days"));
 
 if (isset($verb)) {
-	if ($verb == 'update' &&
+	if ($verb == Verb::UPDATE &&
 			$ledgerManager->validateUpdate($id, $description, $amount, $cleared)) {
 		$ledgerManager->updateTransaction($id, $description, $amount, $cleared);
 		error_log('updated transaction: '. $id);
 		redirectTo("{$host}/{$path}{$thisScript}");
 	}
-	elseif ($verb == 'create' && $ledgerManager->validateCreate($description, $amount, $credit)) {
+	elseif ($verb == Verb::CREATE && $ledgerManager->validateCreate($description, $amount, $credit)) {
 		$ledgerManager->insertTransaction($description, $amount, $credit);
 		error_log('inserted transaction');
 		redirectTo("{$host}/{$path}{$thisScript}");
 	}
-	elseif ($verb == 'delete' && $ledgerManager->validateDelete($id)) {
+	elseif ($verb == Verb::DELETE && $ledgerManager->validateDelete($id)) {
 		$ledgerManager->deleteTransaction($id);
 		error_log('deleted transaction: '. $id);
 		redirectTo("{$host}/{$path}{$thisScript}");
 	}
-	elseif ($verb == 'transactions') {
+	elseif ($verb == Verb::TRANSACTIONS) {
 		$template = new Template();
 		$template->thisScript = $thisScript;
 		$template->totalBalance = $ledgerManager->getBalance();
@@ -49,11 +50,13 @@ if (isset($verb)) {
 		$template->budgetLiClass = 'active';
 		$template->summaryLiClass = '';
 		$template->nextWindowEnd = $windowStartDate;
+		$template->verbMoreTransactions = Verb::MORE_TRANSACTIONS;
+		$template->verbCreate = Verb::CREATE;
 		$template->setFile('templates/bs-table-transactions.phtml')
 			->setLayout('templates/@bs-layout.phtml')
 			->render();
 	}
-	elseif ($verb == 'moreTransactions') {
+	elseif ($verb == Verb::MORE_TRANSACTIONS) {
 		$windowEndDate = date('Y-m-d', strtotime(getRequestParam('windowEndDate')));
 		$unixEndDate = strtotime($windowEndDate);
 		$windowStartDate = date('Y-m-d', strtotime("-". $duration. " days", $unixEndDate));
@@ -64,11 +67,12 @@ if (isset($verb)) {
 		$template->transactions = $ledgerManager->retrieveARangeOfTransactions($windowStartDate, $windowEndDate);
 		$template->unclearedTransactions = $ledgerManager->getAllUnclearedTransactionsBeforeCutoffDate($windowStartDate);
 		$template->nextWindowEnd = $windowStartDate;
+		$template->verbMoreTransactions = Verb::MORE_TRANSACTIONS;
 		$template->setFile('templates/more-transactions.phtml')
 			->setLayout('templates/@null-layout.phtml')
 			->render();
 	}
-	elseif ($verb == 'summary') {
+	elseif ($verb == Verb::SUMMARY) {
 		list($durationDescriptions, $transactionGroups) = setupSummary($duration, $ledgerManager);
 		$template = new Template();
 		$template->thisScript = $thisScript;
@@ -80,11 +84,13 @@ if (isset($verb)) {
 		$template->nextOffsetDays = $duration * LedgerManager::SUMMARY_PAGE_SIZE;
 		$template->budgetLiClass = '';
 		$template->summaryLiClass = 'active';
+		$template->verbMoreSummary = Verb::MORE_SUMMARY;
+		$template->verbCreate = Verb::CREATE;
 		$template->setFile('templates/bs-table-summary.phtml')
 			->setLayout('templates/@bs-layout.phtml')
 			->render();
 	}
-	elseif ($verb == 'moreSummary') {
+	elseif ($verb == Verb::MORE_SUMMARY) {
 		$offsetDays = (int)getRequestParam('offsetDays', 0);
 		$transactionGroups = $ledgerManager->retrieveChunksOfGroupedTransactions($duration, LedgerManager::SUMMARY_PAGE_SIZE, $offsetDays);
 		$hasMoreData = (bool)array_filter($transactionGroups, function($g) {
@@ -96,11 +102,12 @@ if (isset($verb)) {
 		$template->transactionGroups = $transactionGroups;
 		$template->hasMoreData = $hasMoreData;
 		$template->nextOffsetDays = $offsetDays + $duration * LedgerManager::SUMMARY_PAGE_SIZE;
+		$template->verbMoreSummary = Verb::MORE_SUMMARY;
 		$template->setFile('templates/more-summary.phtml')
 			->setLayout('templates/@null-layout.phtml')
 			->render();
 	}
-	elseif ($verb == 'updateModal') {
+	elseif ($verb == Verb::UPDATE_MODAL) {
 		$transaction = $ledgerManager->retrieveTransaction($id);
 		$template = new Template();
 		$template->thisScript = $thisScript;
@@ -109,6 +116,8 @@ if (isset($verb)) {
 		$template->amount = $transaction->amount;
 		$template->cleared = $transaction->cleared;
 		$template->time = date('M j, Y g:i A', strtotime($transaction->time));
+		$template->verbUpdate = Verb::UPDATE;
+		$template->verbDelete = Verb::DELETE;
 		$template->setFile('templates/update-modal.phtml')
 			->setLayout('templates/@null-layout.phtml')
 			->render();
