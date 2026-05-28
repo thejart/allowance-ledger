@@ -11,7 +11,7 @@
 	{/if}
 <tr {$context}>
 	<td>
-		<a href="{$thisScript}?verb=deleteModal&id={$t->id}" data-ajax-target="#deleteModal"><span class='bi bi-trash'></span></a>
+		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-ajax-target="#updateModal"><span class='bi bi-pencil-square'></span></a>
 	</td>
 
 	<td>
@@ -41,7 +41,7 @@
 {foreach $unclearedTransactions as $t}
 <tr class="table-warning uncleared">
 	<td>
-		<a href="{$thisScript}?verb=deleteModal&id={$t->id}" data-ajax-target="#deleteModal"><span class='bi bi-trash'></span></a>
+		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-ajax-target="#updateModal"><span class='bi bi-pencil-square'></span></a>
 	</td>
 
 	<td>

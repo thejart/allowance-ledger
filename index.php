@@ -113,18 +113,6 @@ if (isset($verb)) {
 			->setLayout('templates/@null-layout.phtml')
 			->render();
 	}
-	elseif ($verb == 'deleteModal') {
-		$transaction = $ledgerManager->retrieveTransaction($id);
-		$template = new Template();
-		$template->thisScript = $thisScript;
-		$template->id = $transaction->id;
-		$template->description = $transaction->description;
-		$template->amount = $transaction->amount;
-		$template->time = date('M j, Y g:i A', strtotime($transaction->time));
-		$template->setFile('templates/delete-modal.phtml')
-			->setLayout('templates/@null-layout.phtml')
-			->render();
-	}
 	else {
 		echo '(nope)';
 	}
