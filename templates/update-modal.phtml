@@ -18,15 +18,13 @@
 			<label for="amount">timestamp</label>
 			<input type="text" class="form-control" value="{$time}" readonly>
 		</div>
-		<div class="mb-3">
-			<div class="form-check form-check-inline">
-			{if $cleared}
-				<input class="form-check-input" name="cleared" type="checkbox" id="cleared" value="1" checked>
-			{else}
-				<input class="form-check-input" name="cleared" type="checkbox" id="cleared" value="1">
-			{/if}
-			<label class="form-check-label" for="cleared">Cleared?</label>
-			</div>
+		<div class="d-grid mb-4">
+		{if $cleared}
+			<input type="checkbox" class="btn-check" name="cleared" id="cleared" value="1" checked autocomplete="off">
+		{else}
+			<input type="checkbox" class="btn-check" name="cleared" id="cleared" value="1" autocomplete="off">
+		{/if}
+			<label class="btn btn-outline-success" for="cleared">Cleared?</label>
 		</div>
 		<button type="submit" class="btn btn-primary w-100">OK</button>
 	</form>
