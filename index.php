@@ -77,7 +77,7 @@ if (isset($verb)) {
 		$template->duration = $duration;
 		$template->durationDescriptions = $durationDescriptions;
 		$template->transactionGroups = $transactionGroups;
-		$template->nextOffsetDays = $duration * 6;
+		$template->nextOffsetDays = $duration * LedgerManager::SUMMARY_PAGE_SIZE;
 		$template->budgetLiClass = '';
 		$template->summaryLiClass = 'active';
 		$template->setFile('templates/bs-table-summary.phtml')
@@ -86,7 +86,7 @@ if (isset($verb)) {
 	}
 	elseif ($verb == 'moreSummary') {
 		$offsetDays = (int)getRequestParam('offsetDays', 0);
-		$transactionGroups = $ledgerManager->retrieveChunksOfGroupedTransactions($duration, 6, $offsetDays);
+		$transactionGroups = $ledgerManager->retrieveChunksOfGroupedTransactions($duration, LedgerManager::SUMMARY_PAGE_SIZE, $offsetDays);
 		$hasMoreData = (bool)array_filter($transactionGroups, function($g) {
 			return !empty($g->transactions);
 		});
@@ -95,7 +95,7 @@ if (isset($verb)) {
 		$template->duration = $duration;
 		$template->transactionGroups = $transactionGroups;
 		$template->hasMoreData = $hasMoreData;
-		$template->nextOffsetDays = $offsetDays + $duration * 6;
+		$template->nextOffsetDays = $offsetDays + $duration * LedgerManager::SUMMARY_PAGE_SIZE;
 		$template->setFile('templates/more-summary.phtml')
 			->setLayout('templates/@null-layout.phtml')
 			->render();
@@ -146,6 +146,6 @@ function setupSummary($duration, $ledgerManager, $offsetDays = 0) {
 		'Quarterly' => 91,
 		'Bi-Annually' => 183
 	];
-	$transactionGroups = $ledgerManager->retrieveChunksOfGroupedTransactions($duration, 6, $offsetDays);
+	$transactionGroups = $ledgerManager->retrieveChunksOfGroupedTransactions($duration, LedgerManager::SUMMARY_PAGE_SIZE, $offsetDays);
 	return [$durationDescriptions, $transactionGroups];
 }

@@ -1,6 +1,8 @@
 <?php
 
 class LedgerManager {
+	const SUMMARY_PAGE_SIZE = 6;
+
 	protected $pdo = null;
 	protected $table = null;
 	protected $overallBalance = null;
@@ -368,7 +370,7 @@ class LedgerManager {
 	 * @param int $offsetDays number of days back to start from (0 = now)
 	 * @return mixed[]
 	 */
-	public function retrieveChunksOfGroupedTransactions($duration, $maxCycles = 6, $offsetDays = 0)
+	public function retrieveChunksOfGroupedTransactions($duration, $maxCycles = self::SUMMARY_PAGE_SIZE, $offsetDays = 0)
 	{
 		$currentGroupIndex = 0;
 		$lastNonEmptyIndex = $maxCycles;
