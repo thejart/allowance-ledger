@@ -1,4 +1,6 @@
 .env
+.env.test
+vendor/
 *.swp
 templateManager/*
 bootstrap/*

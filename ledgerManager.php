@@ -13,9 +13,9 @@ class LedgerManager {
 	 * @param string $databae
 	 * @param string|null $table
 	 */
-	public function __construct($username, $password, $database, $table = 'ledger')
+	public function __construct($username, $password, $database, $table = 'ledger', ?PDO $pdo = null)
 	{
-		$this->pdo = new PDO("mysql:host=localhost;dbname=". $database, $username, $password);
+		$this->pdo = $pdo ?? new PDO("mysql:host=localhost;dbname=". $database, $username, $password);
 		$this->table = $table;
 	}
 
@@ -35,7 +35,7 @@ class LedgerManager {
 		return $query->execute([
 			':description' => $description,
 			':amount' => (float)str_replace(',', '', $amount),
-			':credit' => $credit,
+			':credit' => (int)$credit,
 		]);
 	}
 
