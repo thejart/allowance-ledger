@@ -1,6 +1,8 @@
 <?php
 
 class LedgerManager {
+	const SUMMARY_PAGE_SIZE = 6;
+
 	protected $pdo = null;
 	protected $table = null;
 	protected $overallBalance = null;
@@ -11,9 +13,9 @@ class LedgerManager {
 	 * @param string $databae
 	 * @param string|null $table
 	 */
-	public function __construct($username, $password, $database, $table = 'ledger')
+	public function __construct($username, $password, $database, $table = 'ledger', ?PDO $pdo = null)
 	{
-		$this->pdo = new PDO("mysql:host=localhost;dbname=". $database, $username, $password);
+		$this->pdo = $pdo ?? new PDO("mysql:host=localhost;dbname=". $database, $username, $password);
 		$this->table = $table;
 	}
 
@@ -32,8 +34,8 @@ class LedgerManager {
 		");
 		return $query->execute([
 			':description' => $description,
-			':amount' => $amount,
-			':credit' => $credit,
+			':amount' => (float)str_replace(',', '', $amount),
+			':credit' => (int)$credit,
 		]);
 	}
 
@@ -55,7 +57,7 @@ class LedgerManager {
 		");
 		return $query->execute([
 			':description' => $description,
-			':amount' => $amount,
+			':amount' => (float)str_replace(',', '', $amount),
 			':cleared' => $cleared,
 			':transactionId' => $transactionId
 		]);
@@ -364,15 +366,16 @@ class LedgerManager {
 
 	/**
 	 * @param int $duration groups duration in days
-	 * @param int|null $maxCycles
+	 * @param int $maxCycles
+	 * @param int $offsetDays number of days back to start from (0 = now)
 	 * @return mixed[]
 	 */
-	public function retrieveChunksOfGroupedTransactions($duration, $maxCycles = 6)
+	public function retrieveChunksOfGroupedTransactions($duration, $maxCycles = self::SUMMARY_PAGE_SIZE, $offsetDays = 0)
 	{
 		$currentGroupIndex = 0;
 		$lastNonEmptyIndex = $maxCycles;
-		$earlyDateIndex = $duration;
-		$laterDateIndex = null;
+		$earlyDateIndex = $duration + $offsetDays;
+		$laterDateIndex = $offsetDays ?: null;
 		$transactionGroups = [];
 		while ($currentGroupIndex < $maxCycles) {
 			$laterDate = !$laterDateIndex ? $laterDateIndex : date('Y-m-d', strtotime("-". $laterDateIndex. " days"));

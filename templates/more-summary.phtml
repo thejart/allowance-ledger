@@ -1,15 +1,3 @@
-<div class="row text-center">
-	<ul class="list-inline">
-	{foreach $durationDescriptions as $durationString => $durationValue}
-		{if $durationValue == $duration}
-		<li class="list-inline-item">{$durationString}</li>
-		{else}
-		<li class="list-inline-item"><a href="{$thisScript}?verb=summary&duration={$durationValue}">{$durationString}</a></li>
-		{/if}
-	{/foreach}
-	</ul>
-</div>
-
 {foreach $transactionGroups as $transactionGroup}
 	{$from = $transactionGroup->startDate}
 	{$to = $transactionGroup->endDate}
@@ -51,30 +39,11 @@
 
 {/foreach}
 
+{if $hasMoreData}
 <div id="moreSummaryContainer">
 	<button id="moreSummary" data-next-offset="{$nextOffsetDays}" data-duration="{$duration}" type="button" class="btn btn-secondary btn-lg w-100">Load more</button>
 </div>
-
 <script type="text/javascript">
-function bindMoreSummaryClick() {
-	$('#moreSummary').off('click').on('click', function() {
-		var nextOffset = $(this).data('nextOffset');
-		var duration = $(this).data('duration');
-		$('#moreSummaryContainer').remove();
-		$.ajax({
-			type: "POST",
-			url: "{$thisScript}",
-			data: {
-				verb: "{$verbMoreSummary}",
-				offsetDays: nextOffset,
-				duration: duration
-			},
-			success: function(data) {
-				$('table:last').after(data);
-			}
-		});
-		return false;
-	});
-}
 bindMoreSummaryClick();
 </script>
+{/if}

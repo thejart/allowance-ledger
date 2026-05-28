@@ -3,8 +3,8 @@
 	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="modal-body">
-	<form action="{$thisScript}" method="POST">
-		<input type="hidden" name="verb" value="update">
+	<form id="updateForm" action="{$thisScript}" method="POST">
+		<input type="hidden" name="verb" value="{$verbUpdate}">
 		<input type="hidden" name="id" value="{$id}">
 		<div class="mb-3">
 			<label for="description">description</label>
@@ -15,22 +15,27 @@
 			<input type="text" class="form-control" name="amount" placeholder="amount" value="{$amount}">
 		</div>
 		<div class="mb-3">
-			<label for="amount">timestamp</label>
+			<label>timestamp</label>
 			<input type="text" class="form-control" value="{$time}" readonly>
 		</div>
-		<div class="mb-3">
-			<div class="form-check form-check-inline">
-			{if $cleared}
-				<input class="form-check-input" name="cleared" type="checkbox" id="cleared" value="1" checked>
-			{else}
-				<input class="form-check-input" name="cleared" type="checkbox" id="cleared" value="1">
-			{/if}
-			<label class="form-check-label" for="cleared">Cleared?</label>
-			</div>
+		<div class="d-grid mb-4">
+		{if $cleared}
+			<input type="checkbox" class="btn-check" name="cleared" id="cleared" value="1" checked autocomplete="off">
+		{else}
+			<input type="checkbox" class="btn-check" name="cleared" id="cleared" value="1" autocomplete="off">
+		{/if}
+			<label class="btn btn-outline-success" for="cleared">Cleared?</label>
 		</div>
-		<button type="submit" class="btn btn-primary w-100">OK</button>
+	</form>
+	<form id="deleteForm" action="{$thisScript}" method="POST">
+		<input type="hidden" name="verb" value="{$verbDelete}">
+		<input type="hidden" name="id" value="{$id}">
 	</form>
 </div>
-<div class="modal-footer">
-	<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+<div class="modal-footer justify-content-between">
+	<button type="button" class="btn btn-outline-danger" onclick="if(confirm('Delete this transaction?')) document.getElementById('deleteForm').submit()">Delete</button>
+	<div>
+		<button type="submit" form="updateForm" class="btn btn-primary me-2">OK</button>
+		<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+	</div>
 </div>
