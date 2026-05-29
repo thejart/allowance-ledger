@@ -43,15 +43,11 @@
 	  <div class="modal-body">
 		<form action="{$thisScript}" method="POST">
 			<input type="hidden" name="verb" value="{$verbCreate}">
-			<div class="mb-3">
-				<div class="form-check form-check-inline">
-					<input class="form-check-input" type="radio" name="credit" id="debitRadio" checked value="0">
-					<label class="form-check-label" for="debitRadio">Debit</label>
-				</div>
-				<div class="form-check form-check-inline">
-					<input class="form-check-input" type="radio" name="credit" id="creditRadio" value="1">
-					<label class="form-check-label" for="creditRadio">Credit</label>
-				</div>
+			<div class="mb-3 d-flex gap-2">
+				<input class="btn-check" type="radio" name="credit" id="debitRadio" checked value="0" autocomplete="off">
+				<label class="btn btn-outline-danger flex-fill" for="debitRadio">Debit</label>
+				<input class="btn-check" type="radio" name="credit" id="creditRadio" value="1" autocomplete="off">
+				<label class="btn btn-outline-success flex-fill" for="creditRadio">Credit</label>
 			</div>
 			<div class="mb-3">
 				<label for="newDescription">description</label>
