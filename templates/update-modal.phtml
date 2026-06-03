@@ -6,17 +6,17 @@
 	<form id="updateForm" action="{$thisScript}" method="POST">
 		<input type="hidden" name="verb" value="{$verbUpdate}">
 		<input type="hidden" name="id" value="{$id}">
-		<div class="mb-3">
+		<div class="form-floating mb-3">
+			<input type="text" class="form-control" id="description" name="description" placeholder="description" value="{$description}">
 			<label for="description">description</label>
-			<input type="text" class="form-control" name="description" placeholder="description" value="{$description}">
 		</div>
-		<div class="mb-3">
+		<div class="form-floating mb-3">
+			<input type="text" class="form-control" id="amount" name="amount" placeholder="amount" value="{$amount}">
 			<label for="amount">amount</label>
-			<input type="text" class="form-control" name="amount" placeholder="amount" value="{$amount}">
 		</div>
-		<div class="mb-3">
-			<label>timestamp</label>
-			<input type="text" class="form-control" value="{$time}" readonly>
+		<div class="form-floating mb-3">
+			<input type="text" class="form-control" id="timestamp" placeholder="timestamp" value="{$time}" readonly>
+			<label for="timestamp">timestamp</label>
 		</div>
 		<div class="d-grid mb-4">
 		{if $cleared}
