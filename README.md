@@ -1,16 +1,18 @@
 # allowance-ledger
-This is a very simple script that I use for keeping track of day-to-day transactions.  I keep a seperate spreadsheet for keeping track of my main budget where I effectively pay myself an allowance each paycheck and keep track of that money here.  I'm sure this wouldn't work for everyone, but it works really well for me :)
+This is a very simple script that I use for keeping track of day-to-day transactions.  I use a seperate spreadsheet for my budget where this money is a single line item. It might now work for everyone, but it does for me :)
 
 # Setup
-This repo relies on adamtomecek's Template manager, the most bare-bones but solid templating engine I could find for this project. Bootstrap 5 and Bootstrap Icons are loaded from CDN so no local installation is needed. Here's how to set it up:
+This repo relies on adamtomecek's Template manager, a bare-bones but solid templating engine. Bootstrap 5 and Bootstrap Icons are loaded from CDN so no local installation is needed. Here's how to set it up:
 
-1. Clone this repo and go into that directory
+1. Clone this repo and `cd` into that directory
 2. Clone the template manager code
-3. Import ledger schema
+3. Import ledger schema into your database engine
 4. Create .env (described below)
 
 ```
+#2
 git clone git@github.com:thejart/Template.git templateManager
+#3
 mysql -uUSER -p DATABASE < mysql-schemal.sql
 ```
 
