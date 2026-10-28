@@ -1,0 +1,94 @@
+{if $transactions}
+<div class="text-end">
+	<strong><em>{$matchCount} matching "{$searchQuery}"</em></strong>
+</div>
+
+<table class="table table-striped">
+<thead>
+<tr>
+	<th colspan=3>
+	&nbsp;
+	</th>
+	<th><i>amount</i></th>
+</tr>
+</thead>
+<tbody>
+
+{foreach $transactions as $t}
+	{if $t->credit}
+		{$context = 'class="table-success"'}
+	{elseif !$t->cleared}
+		{$context = 'class="table-info"'}
+	{else}
+		{$context = ''}
+	{/if}
+<tr {$context}>
+	<td>
+		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-ajax-target="#updateModal"><span class='bi bi-pencil-square'></span></a>
+	</td>
+
+	<td>
+		{$t->tlong}
+	</td>
+
+	<td>
+		{$t->description}
+	</td>
+
+	<td>
+	{if !$t->credit && !$t->cleared}
+		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-ajax-target="#updateModal">{$t->formattedAmount}</a>
+	{else}
+		{$t->formattedAmount}
+	{/if}
+	</td>
+</tr>
+{/foreach}
+
+{if $hasMoreData}
+<tr class='mutable'>
+	<td colspan=4>
+		<button id="moreSearch" data-next-offset="{$nextOffset}" data-query="{$searchQuery}" type="button" class="btn btn-secondary btn-lg w-100">Load more</button>
+	</td>
+</tr>
+{/if}
+</tbody>
+</table>
+{elseif $hasQuery}
+<p class="text-center text-muted mt-4"><em>Nothing matches "{$searchQuery}"</em></p>
+{else}
+<p class="text-center text-muted mt-4"><em>Search your transactions by description</em></p>
+{/if}
+
+<div id="updateModal" class="modal" role="dialog" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+	<div class="modal-content">
+		<!-- this will be replaced -->
+	</div>
+  </div>
+</div>
+
+<script type='text/javascript'>
+function bindMoreSearchClick() {
+	$('#moreSearch').off('click').on('click', function() {
+		var nextOffset = $(this).data('nextOffset');
+		// read the raw attribute; .data() would coerce a numeric-looking query
+		var searchQuery = $(this).attr('data-query');
+		$('tr.mutable').remove();
+		$.ajax({
+			type: "POST",
+			url: "{$thisScript}",
+			data: {
+				verb: "{$verbMoreSearch}",
+				q: searchQuery,
+				offset: nextOffset
+			},
+			success: function(data) {
+				$('tr:last').after(data);
+			}
+		});
+		return false;
+	});
+}
+bindMoreSearchClick();
+</script>
