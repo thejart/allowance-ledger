@@ -1,0 +1,41 @@
+{foreach $transactions as $t}
+	{if $t->credit}
+		{$context = 'class="table-success"'}
+	{elseif !$t->cleared}
+		{$context = 'class="table-info"'}
+	{else}
+		{$context = ''}
+	{/if}
+<tr {$context}>
+	<td>
+		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-ajax-target="#updateModal"><span class='bi bi-pencil-square'></span></a>
+	</td>
+
+	<td>
+		{$t->tlong}
+	</td>
+
+	<td>
+		{$t->description}
+	</td>
+
+	<td>
+	{if !$t->credit && !$t->cleared}
+		<a href="{$thisScript}?verb=updateModal&id={$t->id}" data-ajax-target="#updateModal">{$t->formattedAmount}</a>
+	{else}
+		{$t->formattedAmount}
+	{/if}
+	</td>
+</tr>
+{/foreach}
+
+{if $hasMoreData}
+<tr class='mutable'>
+	<td colspan=4>
+		<button id="moreSearch" data-next-offset="{$nextOffset}" data-query="{$searchQuery}" type="button" class="btn btn-secondary btn-lg w-100">Load more</button>
+	</td>
+</tr>
+<script type="text/javascript">
+bindMoreSearchClick();
+</script>
+{/if}

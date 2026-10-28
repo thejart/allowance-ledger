@@ -19,6 +19,7 @@ $description = getRequestParam('description');
 $amount = getRequestParam('amount');
 $credit = getRequestParam('credit');
 $cleared = getRequestParam('cleared', 0);
+$searchQuery = trim((string)getRequestParam('q'));
 $duration = getRequestParam('duration', 30);
 $windowStartDate = date('Y-m-d', strtotime("-". $duration. " days"));
 
@@ -49,6 +50,8 @@ if (isset($verb)) {
 		$template->unclearedTransactions = $ledgerManager->getAllUnclearedTransactionsBeforeCutoffDate($windowStartDate);
 		$template->budgetLiClass = 'active';
 		$template->summaryLiClass = '';
+		$template->verbSearch = Verb::SEARCH;
+		$template->searchQuery = '';
 		$template->nextWindowEnd = $windowStartDate;
 		$template->verbMoreTransactions = Verb::MORE_TRANSACTIONS;
 		$template->verbCreate = Verb::CREATE;
@@ -84,6 +87,8 @@ if (isset($verb)) {
 		$template->nextOffsetDays = $duration * LedgerManager::SUMMARY_PAGE_SIZE;
 		$template->budgetLiClass = '';
 		$template->summaryLiClass = 'active';
+		$template->verbSearch = Verb::SEARCH;
+		$template->searchQuery = '';
 		$template->verbMoreSummary = Verb::MORE_SUMMARY;
 		$template->verbCreate = Verb::CREATE;
 		$template->setFile('templates/bs-table-summary.phtml')
@@ -104,6 +109,45 @@ if (isset($verb)) {
 		$template->nextOffsetDays = $offsetDays + $duration * LedgerManager::SUMMARY_PAGE_SIZE;
 		$template->verbMoreSummary = Verb::MORE_SUMMARY;
 		$template->setFile('templates/more-summary.phtml')
+			->setLayout('templates/@null-layout.phtml')
+			->render();
+	}
+	elseif ($verb == Verb::SEARCH) {
+		$transactions = $searchQuery ? $ledgerManager->searchTransactionsByDescription($searchQuery) : [];
+		$matchCount = $searchQuery ? $ledgerManager->countTransactionsMatchingDescription($searchQuery) : 0;
+		$template = new Template();
+		$template->thisScript = $thisScript;
+		$template->totalBalance = $ledgerManager->getBalance();
+		$template->daysLeft = $ledgerManager->numberOfDaysLeftInPayPeriod();
+		$template->transactions = $transactions;
+		$template->matchCount = $matchCount;
+		$template->hasQuery = (bool)$searchQuery;
+		$template->hasMoreData = count($transactions) < $matchCount;
+		$template->nextOffset = count($transactions);
+		$template->budgetLiClass = '';
+		$template->summaryLiClass = '';
+		$template->verbSearch = Verb::SEARCH;
+		$template->verbMoreSearch = Verb::MORE_SEARCH;
+		$template->searchQuery = htmlspecialchars($searchQuery, ENT_QUOTES);
+		$template->verbCreate = Verb::CREATE;
+		$template->setFile('templates/bs-table-search.phtml')
+			->setLayout('templates/@bs-layout.phtml')
+			->render();
+	}
+	elseif ($verb == Verb::MORE_SEARCH) {
+		$offset = (int)getRequestParam('offset', 0);
+		$transactions = $searchQuery
+			? $ledgerManager->searchTransactionsByDescription($searchQuery, LedgerManager::SEARCH_PAGE_SIZE, $offset)
+			: [];
+		$matchCount = $searchQuery ? $ledgerManager->countTransactionsMatchingDescription($searchQuery) : 0;
+		$template = new Template();
+		$template->thisScript = $thisScript;
+		$template->transactions = $transactions;
+		$template->hasMoreData = ($offset + count($transactions)) < $matchCount;
+		$template->nextOffset = $offset + count($transactions);
+		$template->verbMoreSearch = Verb::MORE_SEARCH;
+		$template->searchQuery = htmlspecialchars($searchQuery, ENT_QUOTES);
+		$template->setFile('templates/more-search.phtml')
 			->setLayout('templates/@null-layout.phtml')
 			->render();
 	}
