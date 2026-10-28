@@ -2,6 +2,7 @@
 
 class LedgerManager {
 	const SUMMARY_PAGE_SIZE = 6;
+	const SEARCH_PAGE_SIZE = 50;
 
 	protected $pdo = null;
 	protected $table = null;
@@ -302,6 +303,74 @@ class LedgerManager {
 	}
 
 	/**
+	 * This method returns a page of transactions whose description contains
+	 * the given search term, newest first.  Note: unlike
+	 * retrieveARangeOfTransactions() the returned transactions carry no
+	 * balance, since a running balance is meaningless for a set of rows
+	 * plucked out of the timeline.
+	 *
+	 * @param string $searchTerm
+	 * @param int $limit
+	 * @param int $offset
+	 * @return mixed[]
+	 */
+	public function searchTransactionsByDescription($searchTerm, $limit = self::SEARCH_PAGE_SIZE, $offset = 0)
+	{
+		$query = $this->pdo->prepare("
+			select id, credit, description, amount, time, cleared
+			from {$this->table}
+			where description like :searchTerm
+			order by time desc
+			limit :limit offset :offset
+		");
+		$query->bindValue(':searchTerm', $this->buildLikePattern($searchTerm));
+		$query->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+		$query->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+		$query->execute();
+		return $this->convertTransactionRowsToObjects($query->fetchAll(PDO::FETCH_ASSOC));
+	}
+
+	/**
+	 * This method counts every transaction matching a search term, regardless
+	 * of page size.  It drives the match count and tells us whether another
+	 * page of results exists.
+	 *
+	 * @param string $searchTerm
+	 * @return int
+	 */
+	public function countTransactionsMatchingDescription($searchTerm)
+	{
+		$query = $this->pdo->prepare("
+			select count(*) matchCount
+			from {$this->table}
+			where description like :searchTerm
+		");
+		$query->execute([':searchTerm' => $this->buildLikePattern($searchTerm)]);
+		$row = $query->fetch(PDO::FETCH_ASSOC);
+		return (int)$row['matchCount'];
+	}
+
+	/**
+	 * Wrap a search term for a substring LIKE comparison, neutralizing any
+	 * wildcards the term itself contains so they match literally.
+	 * Eg.
+	 *   beer => %beer%
+	 *   100% => %100\%%
+	 *
+	 * @param string $searchTerm
+	 * @return string
+	 */
+	protected function buildLikePattern($searchTerm)
+	{
+		$escaped = str_replace(
+			['\\', '%', '_'],
+			['\\\\', '\%', '\_'],
+			$searchTerm
+		);
+		return '%'. $escaped. '%';
+	}
+
+	/**
 	 * @param mixed[] $transactionRows
 	 * @return stdClass
 	 */
@@ -322,6 +391,7 @@ class LedgerManager {
 			$transaction->time = $t['time'];
 			$transaction->cleared = $t['cleared'];
 			$transaction->tshort = date('n/j', strtotime($t['time']));
+			$transaction->tlong = date('n/j/y', strtotime($t['time']));
 			if (isset($t['balance'])) {
 				$transaction->balance = $t['balance'];
 				$transaction->formattedBalance = $this->financiallyFormatValue($transaction->balance);

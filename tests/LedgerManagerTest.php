@@ -273,6 +273,99 @@ class LedgerManagerTest extends TestCase
         $this->assertEmpty(array_intersect($firstDates, $secondDates));
     }
 
+    // --- search ---
+
+    public function testSearchMatchesDescriptionSubstringCaseInsensitively(): void
+    {
+        $this->insert('cheap beer',  6.00,  false, '2025-01-01 10:00:00');
+        $this->insert('BEER garden', 22.00, false, '2025-01-02 10:00:00');
+        $this->insert('groceries',   40.00, false, '2025-01-03 10:00:00');
+
+        // newest first
+        $results = $this->manager->searchTransactionsByDescription('beer');
+        $this->assertSame(['BEER garden', 'cheap beer'], array_column($results, 'description'));
+    }
+
+    public function testSearchIncludesCredits(): void
+    {
+        $this->insert('beer refund', 12.00, true,  '2025-01-01 10:00:00');
+        $this->insert('beer',        6.00,  false, '2025-01-02 10:00:00');
+
+        $this->assertCount(2, $this->manager->searchTransactionsByDescription('beer'));
+    }
+
+    public function testSearchReturnsNoMatchesForAbsentTerm(): void
+    {
+        $this->insert('coffee', 4.00, false, '2025-01-01 10:00:00');
+        $this->assertCount(0, $this->manager->searchTransactionsByDescription('yacht'));
+    }
+
+    public function testSearchResultsCarryNoBalance(): void
+    {
+        $this->insert('coffee', 4.00, false, '2025-01-01 10:00:00');
+        $results = $this->manager->searchTransactionsByDescription('coffee');
+
+        $this->assertObjectNotHasProperty('balance', $results[0]);
+        $this->assertObjectNotHasProperty('formattedBalance', $results[0]);
+    }
+
+    public function testSearchResultsIncludeYearBearingDate(): void
+    {
+        $this->insert('taxes', 500.00, false, '2024-03-14 10:00:00');
+        $results = $this->manager->searchTransactionsByDescription('taxes');
+
+        $this->assertSame('3/14/24', $results[0]->tlong);
+        $this->assertSame('3/14', $results[0]->tshort);
+    }
+
+    public function testSearchPagesWithLimitAndOffset(): void
+    {
+        for ($i = 1; $i <= 5; $i++) {
+            $this->insert("beer $i", 5.00, false, sprintf('2025-01-%02d 10:00:00', $i));
+        }
+
+        $firstPage  = $this->manager->searchTransactionsByDescription('beer', 2, 0);
+        $secondPage = $this->manager->searchTransactionsByDescription('beer', 2, 2);
+
+        $this->assertSame(['beer 5', 'beer 4'], array_column($firstPage, 'description'));
+        $this->assertSame(['beer 3', 'beer 2'], array_column($secondPage, 'description'));
+    }
+
+    public function testSearchTreatsPercentLiterally(): void
+    {
+        $this->insert('50% off',    10.00, false, '2025-01-01 10:00:00');
+        $this->insert('50 dollars', 50.00, false, '2025-01-02 10:00:00');
+
+        $results = $this->manager->searchTransactionsByDescription('50%');
+        $this->assertSame(['50% off'], array_column($results, 'description'));
+    }
+
+    public function testSearchTreatsUnderscoreLiterally(): void
+    {
+        $this->insert('gas_station', 30.00, false, '2025-01-01 10:00:00');
+        $this->insert('gas station', 35.00, false, '2025-01-02 10:00:00');
+
+        $results = $this->manager->searchTransactionsByDescription('gas_');
+        $this->assertSame(['gas_station'], array_column($results, 'description'));
+    }
+
+    public function testCountTransactionsMatchingDescriptionIgnoresPageSize(): void
+    {
+        for ($i = 1; $i <= 4; $i++) {
+            $this->insert("beer $i", 5.00, false, sprintf('2025-02-%02d 10:00:00', $i));
+        }
+        $this->insert('wine', 20.00, false, '2025-02-10 10:00:00');
+
+        $this->assertSame(4, $this->manager->countTransactionsMatchingDescription('beer'));
+        $this->assertCount(2, $this->manager->searchTransactionsByDescription('beer', 2));
+    }
+
+    public function testCountTransactionsMatchingDescriptionReturnsZeroWhenNoMatches(): void
+    {
+        $this->insert('coffee', 4.00, false, '2025-01-01 10:00:00');
+        $this->assertSame(0, $this->manager->countTransactionsMatchingDescription('yacht'));
+    }
+
     // --- numberOfDaysLeftInPayPeriod ---
 
     public function testNumberOfDaysLeftInPayPeriodReturnsPositiveInt(): void
